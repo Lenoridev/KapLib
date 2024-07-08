@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "compatibilityLevel": "JAVA_17",
+  "package": "net.kapitencraft.kap_lib.mixin.classes",
+  "refmap": "kap_lib.mixin-refmap.json",
+  "client": [
+    "client.ChatScreenMixin"
+  ],
+  "mixins": [
+    "FishingHookMixin",
+    "FishingRodMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

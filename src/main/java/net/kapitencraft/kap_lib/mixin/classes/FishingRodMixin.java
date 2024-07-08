@@ -1,0 +1,54 @@
+package net.kapitencraft.kap_lib.mixin.classes;
+
+import net.kapitencraft.kap_lib.entity.fishing.IFishingHook;
+import net.kapitencraft.kap_lib.entity.fishing.ModFishingHook;
+import net.kapitencraft.kap_lib.event.custom.ModifyFishingHookStatsEvent;
+import net.kapitencraft.kap_lib.item.tools.fishing.ModFishingRod;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.FishingHook;
+import net.minecraft.world.item.FishingRodItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Vanishable;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.common.MinecraftForge;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+
+@Mixin(FishingRodItem.class)
+public abstract class FishingRodMixin extends Item implements Vanishable {
+
+    FishingRodItem self() {
+        return (FishingRodItem) (Object) this;
+    }
+
+    public FishingRodMixin(Properties p_41383_) {
+        super(p_41383_);
+    }
+
+    @Redirect(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addFreshEntity(Lnet/minecraft/world/entity/Entity;)Z"))
+    public boolean spawnHook(Level level, Entity entity, Level ignored, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        int lureSpeed = EnchantmentHelper.getFishingSpeedBonus(stack);
+        int luckBonus = EnchantmentHelper.getFishingLuckBonus(stack);
+        ModifyFishingHookStatsEvent event = new ModifyFishingHookStatsEvent(entity, player, lureSpeed, luckBonus);
+        MinecraftForge.EVENT_BUS.post(event);
+        lureSpeed = event.lureSpeed.calculate();
+        luckBonus = event.luck.calculate();
+        int hookSpeed = event.hookSpeed.calculate();
+        if (self() instanceof ModFishingRod fishingRod) {
+            ModFishingHook hook = fishingRod.create(player, level, lureSpeed, luckBonus);
+            hook.setHookSpeedModifier(hookSpeed);
+            return level.addFreshEntity(hook);
+        }
+        FishingHook hook = (FishingHook) entity;
+        hook.lureSpeed = lureSpeed;
+        hook.luck = luckBonus;
+        ((IFishingHook) hook).setHookSpeedModifier(hookSpeed);
+        return level.addFreshEntity(hook);
+    }
+}
