@@ -4,6 +4,7 @@ import net.kapitencraft.kap_lib.config.ClientModConfig;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderTooltipEvent;
@@ -53,10 +54,10 @@ public class ScrollableTooltips {
 
     @SubscribeEvent
     public static void scrollEvent(ScreenEvent.MouseScrolled.Pre event) {
-        float scrollScale = ClientModConfig.getScrollScale();
+        double scrollScale = ClientModConfig.getScrollScale();
         if (stack != ItemStack.EMPTY) {
             float scrollDelta = (float) event.getScrollDelta();
-            float scrollOffset = scrollDelta * scrollScale;
+            int scrollOffset = Mth.floor(scrollDelta * scrollScale);
             if (Screen.hasControlDown()) {
                 scale += scrollOffset;
             } else {

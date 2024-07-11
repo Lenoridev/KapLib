@@ -192,16 +192,6 @@ public class MathHelper {
         return count;
     }
 
-    public static int getHighest(@NotNull Collection<Integer> collection) {
-        int value = 0;
-        for (int t : collection) {
-            if (t > value) {
-                value = t;
-            }
-        }
-        return value;
-    }
-
     public static List<BlockPos> makeLine(BlockPos a, BlockPos b, LineSize size) {
         List<BlockPos> list = new ArrayList<>();
         BlockPos diff = b.subtract(a);

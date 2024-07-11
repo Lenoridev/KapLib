@@ -1,7 +1,7 @@
 package net.kapitencraft.kap_lib.client.gui.browse;
 
 import net.kapitencraft.kap_lib.client.gui.screen.DefaultBackgroundScreen;
-import net.kapitencraft.kap_lib.client.gui.widgets.Widget;
+import net.kapitencraft.kap_lib.client.widget.Widget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

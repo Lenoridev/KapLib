@@ -2,6 +2,7 @@ package net.kapitencraft.kap_lib;
 
 import com.mojang.logging.LogUtils;
 import net.kapitencraft.kap_lib.commands.TestCommand;
+import net.kapitencraft.kap_lib.config.ClientModConfig;
 import net.kapitencraft.kap_lib.registry.ModAttributes;
 import net.kapitencraft.kap_lib.registry.ModParticleTypes;
 import net.minecraft.core.Registry;
@@ -12,7 +13,9 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -44,6 +47,8 @@ public class KapLibMod
 
         ModAttributes.REGISTRY.register(modEventBus);
         ModParticleTypes.REGISTRY.register(modEventBus);
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientModConfig.SPEC);
     }
 
     public static String doubleFormat(double d) {

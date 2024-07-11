@@ -1,15 +1,14 @@
 package net.kapitencraft.kap_lib.client.widget;
 
 import net.kapitencraft.kap_lib.KapLibMod;
-import net.kapitencraft.kap_lib.client.gui.widgets.background.WidgetBackground;
+import net.kapitencraft.kap_lib.client.widget.background.WidgetBackground;
+import net.kapitencraft.kap_lib.helpers.MathHelper;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
@@ -36,7 +35,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @OnlyIn(Dist.CLIENT)
-public class MultiLineTextBox extends AbstractWidget implements Renderable {
+public class MultiLineTextBox extends ScrollableWidget {
     public static final int BACKWARDS = -1;
     public static final int FORWARDS = 1;
     private static final int CURSOR_INSERT_WIDTH = 1;
@@ -74,7 +73,6 @@ public class MultiLineTextBox extends AbstractWidget implements Renderable {
     private BiFunction<String, Integer, FormattedCharSequence> formatter = (string, i) -> FormattedCharSequence.forward(string, Style.EMPTY);
     @Nullable
     private Component hint;
-    private float scrollX, scrollY;
 
     public MultiLineTextBox(Font pFont, int pX, int pY, int pWidth, int pHeight, Component pMessage) {
         this(pFont, pX, pY, pWidth, pHeight, null, pMessage);
@@ -317,11 +315,13 @@ public class MultiLineTextBox extends AbstractWidget implements Renderable {
             line++;
         }
         this.cursorPos = pos + xPos;
+        this.updateScroll();
         if (!this.shiftPressed) this.moveHighlightToCursor();
     }
 
     public void setCursorPosition(int pPos) {
         this.cursorPos = Mth.clamp(pPos, 0, this.value.length());
+        this.updateScroll();
         reapplyCursor2d();
     }
 
@@ -504,7 +504,7 @@ public class MultiLineTextBox extends AbstractWidget implements Renderable {
         }
         int xOffset = Mth.floor(pMouseX) - this.getX();
         int yOffset = Mth.floor(pMouseY) - this.getY();
-        int line = Math.min(this.lineValues.size() - 1, yOffset / 10);
+        int line = Mth.clamp(yOffset / 10, 0, this.lineValues.size() - 1);
 
         this.moveCursorTo(this.font.plainSubstrByWidth(this.lineValues.get(line), xOffset).length(), line);
     }
@@ -725,5 +725,27 @@ public class MultiLineTextBox extends AbstractWidget implements Renderable {
 
     public void setTextureBackground(ResourceLocation backgroundLocation) {
         this.background = WidgetBackground.texture(backgroundLocation, 16, 16);
+    }
+
+    @Override
+    protected void updateScroll() {
+        if (canScroll(false)) {
+            if (this.cursorPos2d.y * 10 + this.scrollY >= this.height) {
+                this.scrollY = this.height - this.cursorPos2d.y * 10;
+            } else if (this.cursorPos2d.y * 10 + this.scrollY <= 0) {
+                this.scrollY = this.height - this.cursorPos2d.y * 10;
+            }
+
+            this.scrollY = Mth.clamp(this.scrollY, -this.valueSize(false) + this.height + 2, 2);
+        } else this.scrollY = 2;
+        if (canScroll(true)) {
+
+            this.scrollX = Mth.clamp(this.scrollX, -this.valueSize(true) + this.width + 2, 2);
+        } else this.scrollX = 2;
+    }
+
+    @Override
+    protected int valueSize(boolean x) {
+        return x ? MathHelper.getLargest(this.lineValues.stream().map(this.font::width).toList()) : this.lineValues.size() * 10;
     }
 }

@@ -3,10 +3,12 @@ package net.kapitencraft.kap_lib.config;
 import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.client.chroma.ChromaOrigin;
 import net.kapitencraft.kap_lib.client.chroma.ChromaType;
-import net.kapitencraft.kap_lib.client.gui.widgets.menu.drop_down.elements.Element;
+import net.kapitencraft.kap_lib.client.widget.menu.drop_down.elements.Element;
 import net.minecraft.ChatFormatting;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.Arrays;
 
 @Mod.EventBusSubscriber(modid = KapLibMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientModConfig {
@@ -17,13 +19,13 @@ public class ClientModConfig {
     static {
         SCROLL_SCALE = BUILDER
                 .comment("the scale of how quick tooltips are scrolled with")
-                .defineInRange("scroll_scale", 5, 1, 20);
+                .defineInRange("scroll_scale", 5., 1, 100);
         FOCUS_TYPE = BUILDER
                 .comment("what focus type should be used for highlighting")
                 .defineEnum("focus_type", Element.FocusTypes.OUTLINE);
         PING_COLOR = BUILDER
                 .comment("determines the color which indicates pings")
-                .defineEnum("ping_color", ChatFormatting.YELLOW);
+                .defineEnum("ping_color", ChatFormatting.YELLOW, Arrays.stream(ChatFormatting.values()).filter(ChatFormatting::isColor).toArray(ChatFormatting[]::new));
 
         BUILDER.comment("data to determine how chroma text should be rendered [WIP]").push("chroma");
         CHROMA_SPEED = BUILDER
@@ -37,7 +39,7 @@ public class ClientModConfig {
                 .defineEnum("origin", ChromaOrigin.BOTTOM_RIGHT);
     }
 
-    private static final ForgeConfigSpec.IntValue SCROLL_SCALE;
+    private static final ForgeConfigSpec.DoubleValue SCROLL_SCALE;
     private static final ForgeConfigSpec.EnumValue<Element.FocusTypes> FOCUS_TYPE;
     private static final ForgeConfigSpec.DoubleValue CHROMA_SPEED;
     private static final ForgeConfigSpec.EnumValue<ChromaType> CHROMA_TYPE;
@@ -51,7 +53,7 @@ public class ClientModConfig {
         return PING_COLOR.get();
     }
 
-    public static int getScrollScale() {
+    public static double getScrollScale() {
         return SCROLL_SCALE.get();
     }
 

@@ -1,7 +1,7 @@
 package net.kapitencraft.kap_lib.client.gui.screen;
 
 import net.kapitencraft.kap_lib.client.gui.IMenuBuilder;
-import net.kapitencraft.kap_lib.client.gui.widgets.menu.Menu;
+import net.kapitencraft.kap_lib.client.widget.menu.Menu;
 import net.kapitencraft.kap_lib.helpers.MiscHelper;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
