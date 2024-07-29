@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Pair;
 import net.kapitencraft.kap_lib.client.BannerPatternRenderer;
 import net.kapitencraft.kap_lib.client.UsefulTextures;
 import net.kapitencraft.kap_lib.helpers.MathHelper;
+import net.kapitencraft.kap_lib.util.Color;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.model.geom.ModelPart;
@@ -33,6 +34,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * a widget to create a custom banner
+ */
 public class CreateBannerWidget extends PositionedWidget {
     private static final List<DyeColor> lights = List.of(DyeColor.WHITE, DyeColor.YELLOW, DyeColor.LIME, DyeColor.LIGHT_BLUE);
     private final List<PositionedWidget> widgets = new ArrayList<>();
@@ -50,6 +54,9 @@ public class CreateBannerWidget extends PositionedWidget {
         widgets.add(builder);
     }
 
+    /**
+     * @return the generated banner
+     */
     public ItemStack getBanner() {
         return builder.createBanner();
     }
@@ -69,6 +76,9 @@ public class CreateBannerWidget extends PositionedWidget {
         return this.widgets.stream().anyMatch(positionedWidget -> positionedWidget.mouseClicked(pMouseX, pMouseY, pButton));
     }
 
+    /**
+     * 1. element: select a color for the pattern or background
+     */
     private static class SelectDyeColorWidget extends MultiElementSelectorWidget<DyeColor> {
         /**
          * @param width  the width of the widget in colors <i>not</i> pixels
@@ -80,10 +90,13 @@ public class CreateBannerWidget extends PositionedWidget {
 
         @Override
         protected void createElement(Consumer<MultiElementSelectorWidget<DyeColor>.ElementButton> adder, int xStart, int yStart, int elementSize, DyeColor element) {
-            adder.accept(new ElementButton(xStart, yStart, 16, element, MathHelper.setAlpha(255, element.getTextColor())));
+            adder.accept(new ElementButton(xStart, yStart, 16, element, new Color(element.getTextColor()).setAlpha(255).pack()));
         }
     }
 
+    /**
+     * 2. element: select a banner pattern on click and push it together with the color from the 1. element to the 3. element
+     */
     private class SelectBannerPatternWidget extends MultiElementSelectorWidget<Holder<BannerPattern>> {
 
         /**
@@ -166,6 +179,9 @@ public class CreateBannerWidget extends PositionedWidget {
         }
     }
 
+    /**
+     * 3. element: show all added patterns and allow for modification like (re-) moving elements
+     */
     private static class VisualPatternBuilder extends MultiElementSelectorWidget<Pair<Holder<BannerPattern>, DyeColor>> {
         private final ModelPart flag = BannerPatternRenderer.getFlag();
         private DyeColor background = DyeColor.WHITE;

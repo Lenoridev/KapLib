@@ -27,14 +27,26 @@ public abstract class ModMenu<T extends ICapabilityProvider> extends AbstractCon
         this.blockEntity = provider;
     }
 
+    /**
+     * adds the Player Inventory and Hotbar to the slots
+     */
     public void addPlayerInventories(Inventory inventory, int xOffset, int yOffset) {
         addPlayerInventory(inventory, xOffset, yOffset);
         addPlayerHotbar(inventory, xOffset, yOffset);
     }
 
+    /**
+     * adds the Player Inventory to the slots
+     */
     private void addPlayerInventory(Inventory playerInventory, int xOffset, int yOffSet) {
         MiscHelper.repeat(3, i -> MiscHelper.repeat(9, l -> this.addSlot(new Slot(playerInventory, l + i * 9 + 9, xOffset + 8 + l * 18, yOffSet + 84 + i * 18))));
     }
+
+    /**
+     * @param playerInventory
+     * @param xOffset
+     * @param yOffSet
+     */
     private void addPlayerHotbar(Inventory playerInventory, int xOffset, int yOffSet) {
         MiscHelper.repeat(9, i -> this.addSlot(new Slot(playerInventory, i, xOffset + 8 + i * 18, yOffSet + 142)));
     }
@@ -46,24 +58,27 @@ public abstract class ModMenu<T extends ICapabilityProvider> extends AbstractCon
     private static final int PLAYER_INVENTORY_SLOT_COUNT = PLAYER_INVENTORY_COLUMN_COUNT * PLAYER_INVENTORY_ROW_COUNT;
     public static final int VANILLA_SLOT_COUNT = HOTBAR_SLOT_COUNT + PLAYER_INVENTORY_SLOT_COUNT;
     public static final int VANILLA_FIRST_SLOT_INDEX = 0;
-    public static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
+    public static final int BE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
 
-    // THIS YOU HAVE TO DEFINE!
-
+    /**
+     * quick move Items
+     * override {@code moveItemStackTo} for checking what slot it should insert into
+     * <br> (like fuel slot for fuels and normal slots for other ingredients)
+     */
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player playerIn, int index) {
         Slot sourceSlot = slots.get(index);
-        if (!sourceSlot.hasItem()) return ItemStack.EMPTY;  //EMPTY_ITEM
+        if (!sourceSlot.hasItem()) return ItemStack.EMPTY;
         ItemStack sourceStack = sourceSlot.getItem();
         ItemStack copyOfSourceStack = sourceStack.copy();
 
         // Check if the slot clicked is one of the vanilla container slots
         if (index < VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT) {
             // This is a vanilla container slot so merge the stack into the tile inventory
-            if (!moveItemStackTo(sourceStack, TE_INVENTORY_FIRST_SLOT_INDEX, TE_INVENTORY_FIRST_SLOT_INDEX + slotAmount, false)) {
+            if (!moveItemStackTo(sourceStack, BE_INVENTORY_FIRST_SLOT_INDEX, BE_INVENTORY_FIRST_SLOT_INDEX + slotAmount, false)) {
                 return ItemStack.EMPTY;  // EMPTY_ITEM
             }
-        } else if (index < TE_INVENTORY_FIRST_SLOT_INDEX + slotAmount) {
+        } else if (index < BE_INVENTORY_FIRST_SLOT_INDEX + slotAmount) {
             // This is a TE slot so merge the stack into the players inventory
             if (!moveItemStackTo(sourceStack, VANILLA_FIRST_SLOT_INDEX, VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;
@@ -82,6 +97,9 @@ public abstract class ModMenu<T extends ICapabilityProvider> extends AbstractCon
         return copyOfSourceStack;
     }
 
+    /**
+     * @return the {@link ICapabilityProvider CapabilityProvider} this menu contains
+     */
     public T getCapabilityProvider() {
         return blockEntity;
     }

@@ -12,6 +12,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("ALL")
 public class CollectionHelper {
@@ -49,7 +50,7 @@ public class CollectionHelper {
         return multimap;
     }
 
-    public static <T> List<T> mutableList(List<T> immutable) {
+    public static <T> List<T> mutableList(Collection<T> immutable) {
         return new ArrayList<>(immutable);
     }
 
@@ -159,6 +160,10 @@ public class CollectionHelper {
 
     public static <T> List<T> remove(T[] values, T... toRemove) {
         return Arrays.stream(values).filter(t -> !arrayContains(toRemove, t)).toList();
+    }
+
+    public static <S, T extends S> Stream<T> cast(Stream<S> in, Class<T> clazz) {
+        return in.filter(clazz::isInstance).map(clazz::cast);
     }
 
     public static <T> List<T> add(T[] values, T... toAdd) {

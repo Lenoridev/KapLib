@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * the armor renderer for the {@link ArmorModel}
+ */
 public class ArmorRenderer<T extends ArmorModel> {
     private final T model;
     public ArmorRenderer(Supplier<LayerDefinition> supplier, Function<ModelPart, T> modelConstructor) {

@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+/**
+ * [WIP]
+ */
 public class ParticleAnimParam<T> implements Function<FriendlyByteBuf, T>, BiConsumer<FriendlyByteBuf, Object> {
     private static final HashMap<String, ParticleAnimParam<?>> KEYS = new HashMap<>();
     private final String id;

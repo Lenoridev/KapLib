@@ -13,6 +13,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated move to {@link net.kapitencraft.kap_lib.client.widget.menu.drop_down.elements.MultiElementSelectorElement MultiElementSelectorWidget}
+ */
+@Deprecated
 public class ScrollableMenu extends Menu {
     private static final int SLIDER_WIDTH = 6;
     private final List<ScrollElement> elements = new ArrayList<>();

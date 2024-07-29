@@ -414,7 +414,7 @@ public class MiscHelper {
     private static Vec3 getUpdateForPos(Vec3 cam, LivingEntity living) {
         Vec3 livingPos = living.position();
         Vec3 delta = cam.subtract(livingPos);
-        return MathHelper.setLength(delta, 0.5);
+        return MathHelper.clampLength(delta, 0.5);
     }
 
     public static final char HEART = '\u2661';

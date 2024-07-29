@@ -8,6 +8,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * [WIP]
+ */
 @OnlyIn(Dist.CLIENT)
 public class ParticleAnimationController {
     private final List<Particle> toAnimate;

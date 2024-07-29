@@ -10,6 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.NoSuchElementException;
 
+/**
+ * pre-made model for armors.
+ * <br> extend to make custom armors models
+ */
 public class ArmorModel extends EntityModel<LivingEntity> {
     protected static final CubeDeformation NULL_DEFORM = new CubeDeformation(0);
     public final ModelPart armorHead;

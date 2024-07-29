@@ -8,6 +8,9 @@ import net.minecraft.world.phys.Vec3;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
+/**
+ * [WIP]
+ */
 public enum ParticleAnimations implements Predicate<ParticleAnimationParameters>, BiConsumer<Particle, ParticleAnimationParameters> {
     MOVE_AWAY(ParticleAnimParams.SOURCE),
     MOVE_TO(ParticleAnimParams.TARGET),

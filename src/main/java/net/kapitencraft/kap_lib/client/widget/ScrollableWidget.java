@@ -12,7 +12,7 @@ public abstract class ScrollableWidget extends AbstractWidget {
 
     protected float scrollX, scrollY;
 
-    protected abstract void updateScroll();
+    protected abstract void updateScroll(boolean ignoreCursor);
 
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
@@ -24,7 +24,7 @@ public abstract class ScrollableWidget extends AbstractWidget {
         } else {
             return super.mouseScrolled(pMouseX, pMouseY, pDelta);
         }
-        this.updateScroll();
+        updateScroll(true);
         return true;
     }
 

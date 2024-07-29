@@ -17,17 +17,17 @@ public class ClientModConfig {
 
 
     static {
+        BUILDER.comment("settings for GUI elements").push("gui");
         SCROLL_SCALE = BUILDER
                 .comment("the scale of how quick tooltips are scrolled with")
                 .defineInRange("scroll_scale", 5., 1, 100);
         FOCUS_TYPE = BUILDER
                 .comment("what focus type should be used for highlighting")
                 .defineEnum("focus_type", Element.FocusTypes.OUTLINE);
-        PING_COLOR = BUILDER
-                .comment("determines the color which indicates pings")
-                .defineEnum("ping_color", ChatFormatting.YELLOW, Arrays.stream(ChatFormatting.values()).filter(ChatFormatting::isColor).toArray(ChatFormatting[]::new));
+        CURSOR_MOVE_OFFSET = BUILDER.comment("how many lines below the top the cursor will start scrolling up")
+                        .defineInRange("cursor_move_offset", 2, 0, 5);
 
-        BUILDER.comment("data to determine how chroma text should be rendered [WIP]").push("chroma");
+        BUILDER.pop().comment("data to determine how chroma text should be rendered [WIP]").push("chroma");
         CHROMA_SPEED = BUILDER
                 .comment("the speed of chroma")
                 .defineInRange("speed", 4., 1., 50.);
@@ -37,6 +37,11 @@ public class ClientModConfig {
                 .defineInRange("spacing", 10., 0.5, 50.);
         CHROMA_ORIGIN = BUILDER.comment("where the origin of the chroma (eg it's rotation and animation direction) should be")
                 .defineEnum("origin", ChromaOrigin.BOTTOM_RIGHT);
+
+        BUILDER.pop();
+        PING_COLOR = BUILDER
+                .comment("determines the color which indicates pings")
+                .defineEnum("ping_color", ChatFormatting.YELLOW, Arrays.stream(ChatFormatting.values()).filter(ChatFormatting::isColor).toArray(ChatFormatting[]::new));
     }
 
     private static final ForgeConfigSpec.DoubleValue SCROLL_SCALE;
@@ -46,6 +51,7 @@ public class ClientModConfig {
     private static final ForgeConfigSpec.DoubleValue CHROMA_SPACING;
     private static final ForgeConfigSpec.EnumValue<ChromaOrigin> CHROMA_ORIGIN;
     private static final ForgeConfigSpec.EnumValue<ChatFormatting> PING_COLOR;
+    private static final ForgeConfigSpec.IntValue CURSOR_MOVE_OFFSET;
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
@@ -55,6 +61,10 @@ public class ClientModConfig {
 
     public static double getScrollScale() {
         return SCROLL_SCALE.get();
+    }
+
+    public static int getCursorMoveOffset() {
+        return CURSOR_MOVE_OFFSET.get();
     }
 
     public static ChromaType getChromaType() {

@@ -23,6 +23,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * particle that shows Damage dealt in different colors depending on the damage type
+ */
 @SuppressWarnings("ALL")
 public class DamageIndicatorParticle extends Particle {
     public static final double MAX_MOVEMENT = 0.35;
@@ -146,7 +149,7 @@ public class DamageIndicatorParticle extends Particle {
 
     public static class Provider implements ParticleProvider<DamageIndicatorParticleOptions> {
 
-        public Provider(SpriteSet ignoredSpriteSet) {
+        public Provider() {
 
         }
 

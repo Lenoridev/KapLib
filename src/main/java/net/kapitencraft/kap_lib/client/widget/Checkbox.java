@@ -10,6 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
+/**
+ * a custom checkbox button
+ */
 public class Checkbox extends Button {
     private final boolean checkBoxLeft;
     boolean checked;

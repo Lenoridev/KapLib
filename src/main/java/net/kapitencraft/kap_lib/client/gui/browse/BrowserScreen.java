@@ -12,6 +12,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * used to render Browsables that create a history that you can browse throw (hence the name)
+ * @param <T> the Type of {@link IBrowsable} this screen contains
+ */
 public abstract class BrowserScreen<T extends IBrowsable> extends DefaultBackgroundScreen {
     private final List<Widget> browseables = new ArrayList<>();
     protected final T browsable;

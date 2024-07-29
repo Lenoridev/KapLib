@@ -3,6 +3,8 @@ package net.kapitencraft.kap_lib.enchantments.extras;
 import net.kapitencraft.kap_lib.enchantments.abstracts.ModEnchantment;
 import net.kapitencraft.kap_lib.helpers.ClientHelper;
 import net.kapitencraft.kap_lib.helpers.TextHelper;
+import net.kapitencraft.kap_lib.requirements.RequirementManager;
+import net.kapitencraft.kap_lib.requirements.RequirementType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -26,7 +28,7 @@ public class EnchantmentDescriptionManager {
             if (!enchantment.isTradeable()) list.add(Component.translatable("ench_desc.not_tradeable").withStyle(ChatFormatting.YELLOW));
             if (enchantment.isTreasureOnly()) list.add(Component.translatable("ench_desc.treasure").withStyle(ChatFormatting.YELLOW));
         }
-        ClientHelper.addReqContent(list::add, enchantment, player);
+        ClientHelper.addReqContent(list::add, RequirementType.ENCHANTMENT, enchantment, player);
         list.addAll(getDescription(stack, enchantment));
     }
 

@@ -13,6 +13,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * [WIP]
+ */
 public class ParticleAnimationProvider implements ParticleProvider<ParticleAnimationOptions> {
     public ParticleAnimationProvider(SpriteSet ignored) {
 

@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+/**
+ * [WIP]
+ */
 public class ParticleAnimationParameters {
     int remainingAnimTime = -1;
 

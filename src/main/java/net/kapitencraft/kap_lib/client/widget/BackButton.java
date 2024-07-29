@@ -6,6 +6,9 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+/**
+ * a "go back" button
+ */
 public class BackButton extends Button {
 
     private final boolean left;

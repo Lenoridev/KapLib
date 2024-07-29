@@ -20,6 +20,7 @@ public class AttributeHelper {
 
 
     /**
+     * increases the value of all modifiers matching the predicate (Operations, Attribute) by {@code percent} percent (in decimal)
      * @param multimap {@link Multimap} to increase
      * @param percent percentage to increase all multimap contents with filter to operations and attributeReq
      * @param operations filter for {@link AttributeModifier.Operation}s
@@ -51,6 +52,7 @@ public class AttributeHelper {
 
 
     /**
+     * merge {@code modifier} into the modifiers given as {@code multimap}
      * @param multimap the map to add to
      * @param attributeReq if there's a requirement for the attribute
      * @return the merged map
@@ -85,21 +87,23 @@ public class AttributeHelper {
     }
 
     /**
-     * @param list to merge into
-     * @param toMerge the Map being merged into list
+     * merge all Modifiers given in {@code toMerge} into the {@code multimap}
+     * @see AttributeHelper#increaseByAmount(Multimap, Attribute, AttributeModifier) increaseByAmount
+     * @param multimap to merge into
+     * @param toMerge the Map being merged into multimap
      * @return {@link Multimap} with the toMerge content added to it
      */
-    public static Multimap<Attribute, AttributeModifier> increaseAllByAmount(Multimap<Attribute, AttributeModifier> list, Map<Attribute, AttributeModifier> toMerge) {
+    public static Multimap<Attribute, AttributeModifier> increaseAllByAmount(Multimap<Attribute, AttributeModifier> multimap, Map<Attribute, AttributeModifier> toMerge) {
         for (Attribute attribute : toMerge.keySet()) {
             for (AttributeModifier modifier : List.of(toMerge.get(attribute)))
-                list = increaseByAmount(list, attribute, modifier);
+                multimap = increaseByAmount(multimap, attribute, modifier);
         }
-        return list;
+        return multimap;
     }
 
     /**
-     * see {@link Map} version above
-     * @param toMerge map -> multimap
+     * merge two attribute multimaps together
+     * @see AttributeHelper#increaseAllByAmount(Multimap, Map) basic map version
      */
     public static Multimap<Attribute, AttributeModifier> increaseAllByAmount(Multimap<Attribute, AttributeModifier> map, Multimap<Attribute, AttributeModifier> toMerge) {
         for (Attribute attribute : toMerge.keySet()) {
@@ -149,7 +153,7 @@ public class AttributeHelper {
     }
 
     /**
-     * method to copy an {@link AttributeModifier}
+     * method to copy an {@link AttributeModifier}, changing its value
      * @return the copy with the new value
      */
     public static AttributeModifier copyWithValue(AttributeModifier modifier, double value) {

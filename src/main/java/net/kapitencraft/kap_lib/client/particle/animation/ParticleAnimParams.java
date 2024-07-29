@@ -4,6 +4,9 @@ import net.kapitencraft.kap_lib.helpers.NetworkingHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * [WIP]
+ */
 public class ParticleAnimParams {
     public static final ParticleAnimParam<Vec3> DELTA = new ParticleAnimParam<>("delta", NetworkingHelper::writeVec3, NetworkingHelper::readVec3);
     public static final ParticleAnimParam<Integer> SOURCE = new ParticleAnimParam<>("source", FriendlyByteBuf::writeInt, FriendlyByteBuf::readInt);

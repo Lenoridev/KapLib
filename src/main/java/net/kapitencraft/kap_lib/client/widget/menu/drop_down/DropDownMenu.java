@@ -19,7 +19,6 @@ public class DropDownMenu extends Menu {
         }
     };
 
-
     public DropDownMenu(int x, int y, GuiEventListener listener) {
         super(x, y, listener);
     }
@@ -37,8 +36,8 @@ public class DropDownMenu extends Menu {
         this.root.hide();
     }
 
-    public void addElement(Function<ListElement, Element> constructor) {
-        this.root.addElement(constructor.apply(this.root));
+    public void addElement(Element.Builder<?, ?> builder) {
+        this.root.addElement(builder.build(this.root, this));
     }
 
     @Override

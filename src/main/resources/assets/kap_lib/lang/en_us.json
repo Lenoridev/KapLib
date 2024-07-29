@@ -1,0 +1,36 @@
+{
+  "alignment.x.top": "Left",
+  "alignment.x.middle": "Middle",
+  "alignment.x.bottom": "Right",
+  "alignment.y.top": "Top",
+  "alignment.y.middle": "Middle",
+  "alignment.y.bottom": "Bottom",
+
+  "change_overlay_locations.title": "Change Overlay Locations",
+  "command.failed.console": "Can not perform this command from the console",
+
+  "ench_desc.not_tradeable": "Can not be traded with Villagers",
+  "ench_desc.shift": "press [Shift] for enchantment descriptions",
+  "ench_desc.treasure": "Treasure Enchantment; may not be obtained from Enchantment Table",
+
+  "gui.alignment": "Alignment",
+  "gui.alignment.x": "Width Alignment",
+  "gui.alignment.y": "Height Alignment",
+  "gui.reset_overlay": "Reset Overlay",
+  "gui.hide_overlay": "Hide Overlay",
+  "gui.toggle_overlays": "Toggle Overlays",
+
+  "item.requires": "requires %1$s to be used",
+
+  "stat_req.mined": "%1$s %2$s mined",
+  "stat_req.used": "%1$s %2$s used",
+  "stat_req.crafted": "%1$s %2$s crafted",
+  "stat_req.picked_up": "%1$s %2$s picked up",
+  "stat_req.killed": "%1$s %2$s kills",
+  "dimension_req.display": "May only be used in the %1$s",
+
+  "dimension.minecraft.overworld": "Overworld",
+  "dimension.minecraft.overworld_caves": "Overworld Caves",
+  "dimension.minecraft.the_nether": "Nether",
+  "dimension.minecraft.the_end": "End"
+}

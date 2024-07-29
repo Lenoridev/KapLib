@@ -5,8 +5,10 @@ import net.kapitencraft.kap_lib.client.widget.menu.IValueModifierElement;
 import net.kapitencraft.kap_lib.client.widget.menu.drop_down.DropDownMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.validation.Validator;
 import java.util.function.Consumer;
 
 public class BooleanElement extends Element implements IValueModifierElement<BooleanElement, Boolean> {
@@ -49,5 +51,20 @@ public class BooleanElement extends Element implements IValueModifierElement<Boo
     @Override
     public void setValue(Boolean value) {
         this.selected = value;
+    }
+
+    public static class Builder extends Element.Builder<BooleanElement, Builder> {
+        private Consumer<Boolean> onChange;
+
+        public Builder setOnChange(Consumer<Boolean> onChange) {
+            this.onChange = onChange;
+            return this;
+        }
+
+        @Override
+        public BooleanElement build(ListElement element, DropDownMenu menu) {
+            Validate.notNull(onChange, "onChange may not be null");
+            return new BooleanElement(element, menu, name, onChange);
+        }
     }
 }

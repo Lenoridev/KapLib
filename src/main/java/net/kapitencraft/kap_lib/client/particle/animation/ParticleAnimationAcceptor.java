@@ -7,6 +7,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * [WIP]
+ */
 @OnlyIn(Dist.CLIENT)
 public class ParticleAnimationAcceptor {
     private final List<ParticleAnimationController> controllers = new ArrayList<>();

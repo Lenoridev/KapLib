@@ -11,6 +11,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * [WIP]
+ */
 public class ParticleAnimationOptions extends ParticleType<ParticleAnimationOptions> implements ParticleOptions {
     final ParticleOptions options;
 

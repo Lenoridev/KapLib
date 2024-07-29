@@ -14,7 +14,7 @@ public class ListElement extends Element {
     protected final List<Element> children = new ArrayList<>();
     private boolean showChildren = false;
 
-    public ListElement(@Nullable ListElement listElement,  DropDownMenu menu, Component component) {
+    public ListElement(@Nullable ListElement listElement, DropDownMenu menu, Component component) {
         super(listElement, menu, component);
     }
 
@@ -96,5 +96,21 @@ public class ListElement extends Element {
             }
         }
         return super.isFocused() ? this : null;
+    }
+
+    public static class Builder extends Element.Builder<ListElement, Builder> {
+        private final List<Element> elements = new ArrayList<>();
+
+        public Builder addElement(Element element) {
+            elements.add(element);
+            return this;
+        }
+
+        @Override
+        public ListElement build(ListElement element, DropDownMenu menu) {
+            ListElement newElement = new ListElement(element, menu, name);
+            elements.forEach(newElement::addElement);
+            return newElement;
+        }
     }
 }

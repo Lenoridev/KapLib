@@ -4,6 +4,9 @@ import net.kapitencraft.kap_lib.client.widget.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 
+/**
+ * basic implementation and subclass of all menus
+ */
 public abstract class Menu extends Widget {
     protected final int x, y;
     private final GuiEventListener parent;

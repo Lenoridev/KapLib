@@ -1,21 +1,22 @@
 package net.kapitencraft.kap_lib.client.overlay.box;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.kapitencraft.kap_lib.client.overlay.holder.RenderHolder;
+import net.kapitencraft.kap_lib.client.overlay.holder.Overlay;
 import net.minecraft.world.phys.Vec2;
+import org.jetbrains.annotations.ApiStatus;
 import org.lwjgl.glfw.GLFW;
 
-public class ResizeAccessBox extends InteractiveBox {
+@ApiStatus.Internal
+class ResizeAccessBox extends InteractiveBox {
     private final ResizeBox.Type type;
     private final ResizeBox parent;
-    protected ResizeAccessBox(Vec2 start, Vec2 finish, int cursorType, PoseStack stack, int color, RenderHolder dedicatedHolder, ResizeBox.Type type, ResizeBox parent) {
-        super(start, finish, cursorType, stack, color, dedicatedHolder);
+    protected ResizeAccessBox(Vec2 start, Vec2 finish, int cursorType, int color, Overlay dedicatedHolder, ResizeBox.Type type, ResizeBox parent) {
+        super(start, finish, cursorType, color, dedicatedHolder);
         this.type = type;
         this.parent = parent;
     }
 
-    protected ResizeAccessBox(PoseStack stack, int color, RenderHolder dedicated, ResizeBox.Type type, ResizeBox box) {
-        this(Vec2.ZERO, Vec2.ZERO, -1, stack, color, dedicated, type, box);
+    protected ResizeAccessBox(int color, Overlay dedicated, ResizeBox.Type type, ResizeBox box) {
+        this(Vec2.ZERO, Vec2.ZERO, -1, color, dedicated, type, box);
     }
 
 

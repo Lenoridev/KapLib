@@ -4,11 +4,14 @@
   "package": "net.kapitencraft.kap_lib.mixin.classes",
   "refmap": "kap_lib.mixin-refmap.json",
   "client": [
-    "client.ChatScreenMixin"
+    "client.ChatScreenMixin",
+    "client.ContainerScreenMixin"
   ],
   "mixins": [
     "FishingHookMixin",
-    "FishingRodMixin"
+    "FishingRodMixin",
+    "ItemStackMixin",
+    "PlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

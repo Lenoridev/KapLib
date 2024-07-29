@@ -5,6 +5,8 @@ import net.kapitencraft.kap_lib.commands.TestCommand;
 import net.kapitencraft.kap_lib.config.ClientModConfig;
 import net.kapitencraft.kap_lib.registry.ModAttributes;
 import net.kapitencraft.kap_lib.registry.ModParticleTypes;
+import net.kapitencraft.kap_lib.registry.custom.ModRegistryBuilders;
+import net.kapitencraft.kap_lib.registry.custom.ModRequirementTypes;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +21,7 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.NewRegistryEvent;
 import net.minecraftforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
@@ -45,6 +48,7 @@ public class KapLibMod
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        ModRequirementTypes.REGISTRY.register(modEventBus);
         ModAttributes.REGISTRY.register(modEventBus);
         ModParticleTypes.REGISTRY.register(modEventBus);
 
@@ -63,12 +67,12 @@ public class KapLibMod
         return DeferredRegister.create(key, MOD_ID);
     }
 
-    @Mod.EventBusSubscriber
-    public static class EventHooks {
-
+    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class ModBusEvents {
         @SubscribeEvent
-        public static void registerClientCommands(RegisterClientCommandsEvent event) {
-            TestCommand.register(event.getDispatcher());
+        public static void registerRegistries(NewRegistryEvent event) {
+            event.create(ModRegistryBuilders.REQUESTABLES_BUILDER);
+            event.create(ModRegistryBuilders.REQUIREMENTS_BUILDER);
         }
     }
 }

@@ -4,6 +4,9 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * [WIP]
+ */
 public class ParticleMoveControl {
     public Level level;
     Vec3 deltaVec;

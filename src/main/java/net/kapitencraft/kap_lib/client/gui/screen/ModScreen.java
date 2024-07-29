@@ -77,7 +77,7 @@ public abstract class ModScreen<K extends ICapabilityProvider, T extends ModMenu
         renderTooltip(graphics, mouseX, mouseY);
         if (this.menu.getCarried().isEmpty() && this.hoveredSlot == null) {
             hoverTooltips.forEach(tooltip -> {
-                if (tooltip.matches(this.leftPos, this.topPos, mouseX, mouseY)) {
+                if (tooltip.hovered(this.leftPos, this.topPos, mouseX, mouseY)) {
                     graphics.renderTooltip(Minecraft.getInstance().font, tooltip.getText(), Optional.empty(), mouseX, mouseY);
                 }
             });

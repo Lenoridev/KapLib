@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * [WIP]
+ */
 public class ParticleAnimationInfo implements Map<Integer, ParticleAnimations> {
     public static final ParticleAnimationInfo EMPTY = new ParticleAnimationInfo(Map.of());
     private final Map<Integer, ParticleAnimations> animationsForTime;

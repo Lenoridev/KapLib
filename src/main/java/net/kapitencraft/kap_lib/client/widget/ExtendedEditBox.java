@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
 
+//TODO fix? changes required; possibly removed soon
 public class ExtendedEditBox extends EditBox {
     private final Predicate<String> textValid;
 

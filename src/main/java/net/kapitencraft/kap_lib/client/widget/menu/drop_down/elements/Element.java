@@ -15,13 +15,13 @@ public abstract class Element implements Renderable {
     private static final int BACKGROUND_COLOR = 0xFF090909, FOCUS_COLOR = 0xFF7F7F7F;
     public static final int OFFSET_PER_ELEMENT = 10;
     protected static final Font font = Minecraft.getInstance().font;
-    protected final @Nullable ListElement parent;
+    protected final ListElement parent;
     protected final DropDownMenu menu;
     private final Component name;
     protected int x, y;
     protected boolean shown = false, focused = false;
 
-    protected Element(@Nullable ListElement parent, DropDownMenu menu, Component name) {
+    protected Element(ListElement parent, DropDownMenu menu, Component name) {
         this.parent = parent;
         this.menu = menu;
         this.name = name;
@@ -123,5 +123,16 @@ public abstract class Element implements Renderable {
         public String getSerializedName() {
             return serializedName;
         }
+    }
+
+    public abstract static class Builder<T extends Element, I extends Builder<T, I>> {
+        protected Component name;
+
+        public I setName(Component name) {
+            this.name = name;
+            return (I) this;
+        }
+
+        public abstract T build(ListElement element, DropDownMenu menu);
     }
 }

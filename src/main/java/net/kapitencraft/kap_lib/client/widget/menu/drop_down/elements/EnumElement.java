@@ -3,6 +3,7 @@ package net.kapitencraft.kap_lib.client.widget.menu.drop_down.elements;
 import net.kapitencraft.kap_lib.client.widget.menu.IValueModifierElement;
 import net.kapitencraft.kap_lib.client.widget.menu.drop_down.DropDownMenu;
 import net.minecraft.network.chat.Component;
+import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -54,6 +55,39 @@ public class EnumElement<T extends Enum<T>> extends ListElement implements IValu
         @Override
         public boolean selected() {
             return EnumElement.this.selected == this.id;
+        }
+    }
+
+    public static <T extends Enum<T>> Builder<T> builder(Class<T> ignoredIdentificationClass) {
+        return new Builder<>();
+    }
+
+    public static class Builder<T extends Enum<T>> extends Element.Builder<EnumElement<T>, Builder<T>> {
+        private T[] elements;
+        private Function<T, Component> nameMapper;
+        private Consumer<T> onChange;
+
+        public Builder<T> setElements(T[] elements) {
+            this.elements = elements;
+            return this;
+        }
+
+        public Builder<T> setOnChange(Consumer<T> onChange) {
+            this.onChange = onChange;
+            return this;
+        }
+
+        public Builder<T> setNameMapper(Function<T, Component> nameMapper) {
+            this.nameMapper = nameMapper;
+            return this;
+        }
+
+        @Override
+        public EnumElement<T> build(ListElement element, DropDownMenu menu) {
+            Validate.notNull(elements, "elements may not be null");
+            Validate.notNull(nameMapper, "nameMapper may not be null");
+            Validate.notNull(onChange, "onChange may not be null");
+            return new EnumElement<>(element, menu, name, elements, nameMapper, onChange);
         }
     }
 }

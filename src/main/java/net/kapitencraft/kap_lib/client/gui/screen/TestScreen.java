@@ -1,11 +1,17 @@
 package net.kapitencraft.kap_lib.client.gui.screen;
 
-import net.kapitencraft.kap_lib.client.widget.MultiLineTextBox;
+import net.kapitencraft.kap_lib.client.widget.text.MultiLineTextBox;
+import net.kapitencraft.kap_lib.client.widget.background.WidgetBackground;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.ApiStatus;
 
+/**
+ * used to test lib code, do not use!
+ */
+@ApiStatus.Internal
 public class TestScreen extends Screen {
     private static final ResourceLocation BACKGROUND = new ResourceLocation("textures/block/diamond_block.png");
     private MultiLineTextBox textBox;
@@ -16,9 +22,10 @@ public class TestScreen extends Screen {
 
     @Override
     protected void init() {
-        final int widgetWidth = 100, widgetHeight = 100;
+        final int widgetWidth = 400, widgetHeight = 200;
         textBox = new MultiLineTextBox(this.font, width / 2 - widgetWidth / 2, height / 2 - widgetHeight / 2, widgetWidth, widgetHeight, textBox, Component.empty());
-        textBox.setTextureBackground(BACKGROUND);
+        textBox.setBackground(WidgetBackground.fill(0xFF000000));
+        textBox.setLineRenderType(MultiLineTextBox.LineRenderType.EVERY);
         this.addRenderableWidget(textBox);
     }
 

@@ -1,5 +1,7 @@
 package net.kapitencraft.kap_lib.collection;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,12 +59,18 @@ public class MapStream<T, K> {
     }
 
     public MapStream<T, K> filterKeys(Predicate<T> keyFilter) {
+        return filterKeys(keyFilter, null);
+    }
+
+    public MapStream<T, K> filterKeys(Predicate<T> keyFilter, @Nullable BiConsumer<T, K> forFailed) {
         Map<T, K> map = new HashMap<>();
         this.map.forEach((t, k) -> {
             if (keyFilter.test(t))
                 map.put(t, k);
+            else if (forFailed != null) forFailed.accept(t, k);
         });
         return of(map);
+
     }
 
     public MapStream<T, K> filterValues(Predicate<K> keyFilter, @Nullable BiConsumer<T, K> forFailed) {

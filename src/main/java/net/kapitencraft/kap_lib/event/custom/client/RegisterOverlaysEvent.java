@@ -1,8 +1,8 @@
 package net.kapitencraft.kap_lib.event.custom.client;
 
 import net.kapitencraft.kap_lib.client.overlay.OverlayLocation;
-import net.kapitencraft.kap_lib.client.overlay.PositionHolder;
-import net.kapitencraft.kap_lib.client.overlay.holder.RenderHolder;
+import net.kapitencraft.kap_lib.client.overlay.OverlayProperties;
+import net.kapitencraft.kap_lib.client.overlay.holder.Overlay;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.eventbus.api.Event;
@@ -16,9 +16,9 @@ import java.util.function.Function;
  */
 @OnlyIn(Dist.CLIENT)
 public class RegisterOverlaysEvent extends Event implements IModBusEvent {
-    private final BiConsumer<OverlayLocation, Function<PositionHolder, RenderHolder>> constructorFactory;
+    private final BiConsumer<OverlayLocation, Function<OverlayProperties, Overlay>> constructorFactory;
 
-    public RegisterOverlaysEvent(BiConsumer<OverlayLocation, Function<PositionHolder, RenderHolder>> constructorFactory) {
+    public RegisterOverlaysEvent(BiConsumer<OverlayLocation, Function<OverlayProperties, Overlay>> constructorFactory) {
         this.constructorFactory = constructorFactory;
     }
 
@@ -26,7 +26,7 @@ public class RegisterOverlaysEvent extends Event implements IModBusEvent {
      * @param location the screen location the renderer should default to
      * @param constructor the constructor being called to create the Holder
      */
-    public void addOverlay(OverlayLocation location, Function<PositionHolder, RenderHolder> constructor) {
+    public void addOverlay(OverlayLocation location, Function<OverlayProperties, Overlay> constructor) {
         constructorFactory.accept(location, constructor);
     }
 }

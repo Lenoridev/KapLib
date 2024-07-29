@@ -41,7 +41,7 @@ public class OrbitAnimationElement extends ParticleAnimationElement {
         } else {
             targetPos = MathHelper.calculateViewVector(0, curRot);
         }
-        targetPos = MathHelper.setLength(targetPos, 0.75).add(animator.target.position()).add(0, curHeightChange, 0);
+        targetPos = MathHelper.clampLength(targetPos, 0.75).add(animator.target.position()).add(0, curHeightChange, 0);
         animator.target.level().addParticle(options, targetPos.x, targetPos.y, targetPos.z, 0, 0, 0);
         curRot += rotPerTick;
         applyHeightChange();

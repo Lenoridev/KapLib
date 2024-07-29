@@ -32,13 +32,13 @@ public class RequestPacket<T, K> implements SimplePacket {
 
     public static <T, K> IRequestable<T, K> getRequestable(String id) {
         ResourceLocation location = new ResourceLocation(id);
-        IRequestable<T, K> requestable = (IRequestable<T, K>) ModRegistries.REQUESTABLES_REGISTRY.getValue(location);
+        IRequestable<T, K> requestable = (IRequestable<T, K>) ModRegistries.REQUESTABLES.getValue(location);
         if (requestable == null) throw new IllegalStateException("unable to read requestable for key '" + id + "'");
         return requestable;
     }
 
     public static <T, K> String saveRequestable(IRequestable<T, K> requestable) {
-        ResourceLocation location = ModRegistries.REQUESTABLES_REGISTRY.getKey(requestable);
+        ResourceLocation location = ModRegistries.REQUESTABLES.getKey(requestable);
         if (location == null) throw new IllegalStateException("can not send request without valid requestable");
         return location.toString();
     }
@@ -59,7 +59,7 @@ public class RequestPacket<T, K> implements SimplePacket {
                     try {
                         ModMessages.sendToClientPlayer(new RequestDataPacket<>(this.requestId, this.provider, this.provider.pack(this.value, player)), player);
                     } catch (Exception e) {
-                        KapLibMod.LOGGER.warn((Marker) Markers.REQUESTS, "unable to handle Request Packet of provider '{}': {}", ModRegistries.REQUESTABLES_REGISTRY.getKey(this.provider), e.getMessage());
+                        KapLibMod.LOGGER.warn((Marker) Markers.REQUESTS, "unable to handle Request Packet of provider '{}': {}", ModRegistries.REQUESTABLES.getKey(this.provider), e.getMessage());
                     }
                 }
         });

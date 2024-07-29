@@ -12,7 +12,14 @@ public abstract class HoverScreenUpdatable<T extends ModMenu<?>> extends HoverTo
         this.menu = menu;
     }
 
+    /**
+     * change the text of this tooltip
+     */
     public abstract void tick();
 
+    /**
+     * @return if this HoverTooltip has been changed (use menu instance)
+     * if it returns true, the {@link HoverScreenUpdatable#tick() tick} method will be called to make changes to this tooltip (changing its text)
+     */
     public abstract boolean changed();
 }

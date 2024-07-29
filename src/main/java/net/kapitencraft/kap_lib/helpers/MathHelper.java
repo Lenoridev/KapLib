@@ -44,6 +44,12 @@ public class MathHelper {
         return new Vector4f(f, f1, f2, f3);
     }
 
+    public static int RGBAtoInt(int r, int g, int b, int a) {
+        int returnable = (a << 8) + r;
+        returnable = (returnable << 8) + g;
+        return (returnable << 8) + b;
+    }
+
     public static double round(double no, int num) {
         return Math.floor(no * Math.pow(10, num)) / (Math.pow(10, num));
     }
@@ -52,10 +58,6 @@ public class MathHelper {
         return round(no, 2);
     }
 
-    @Contract("_, _, _ -> !null")
-    public static Vector3f color(int r, int g, int b) {
-        return new Vector3f(r / 255f, g / 255f, b / 255f);
-    }
 
     public static float calculateDamage(float damage, double armorValue, double armorToughnessValue) {
         double f = DAMAGE_CALCULATION_VALUE - armorToughnessValue / 4.0F;
@@ -169,7 +171,7 @@ public class MathHelper {
         Vec3 diff = result.getLocation().subtract(viewVecWithLoc);
         ArrayList<Vec3> list = new ArrayList<>();
         for (int i = 0; i < diff.length() / scaling; i++) {
-            list.add(setLength(diff, i * scaling).add(entity.getEyePosition()));
+            list.add(clampLength(diff, i * scaling).add(entity.getEyePosition()));
         }
         return list;
     }
@@ -226,7 +228,7 @@ public class MathHelper {
     public static Vec3 moveTowards(Vec3 source, Vec3 target, double range, boolean percentage) {
         Vec3 change = source.subtract(target);
         double dist = source.distanceTo(target);
-        return percentage ? setLength(change, dist * range) : setLength(change, range);
+        return percentage ? clampLength(change, dist * range) : clampLength(change, range);
     }
 
     @Nullable
@@ -352,7 +354,7 @@ public class MathHelper {
     }
 
     @Contract("null, _ -> fail")
-    public static Vec3 setLength(Vec3 source, double value) {
+    public static Vec3 clampLength(Vec3 source, double value) {
         if (source.length() > value) {
             return maximiseLength(source, value);
         }
@@ -380,40 +382,7 @@ public class MathHelper {
         return new Vec3(halfX, halfY, halfZ);
     }
 
-    @Contract(value = "_ -> new", pure = true)
-    public static Vector3i intToRGB(int in) {
-        int r = in >> 16 & 255;
-        int g = in >> 8 & 255;
-        int b = in & 255;
-        return new Vector3i(r, g, b);
-    }
-
-    public static int RGBtoInt(Vector3i in) {
-        int r = in.x;
-        int g = in.y;
-        int b = in.z;
-        return RGBAtoInt(r, g, b, 1);
-    }
-
-    public static int RGBtoInt(Vector3f in) {
-        return RGBtoInt(fromFloat(in, 255));
-    }
-
-    public static int RGBAtoInt(int r, int g, int b, int a) {
-        int returnable = (a << 8) + r;
-        returnable = (returnable << 8) + g;
-        return (returnable << 8) + b;
-    }
-
-    public static int setAlpha(int alpha, int RGB) {
-        Vector3i internal = intToRGB(RGB);
-        return RGBAtoInt(internal.x, internal.y, internal.z, alpha);
-    }
-
-    public static int RGBtoInt(float r, float g, float b) {
-        return RGBtoInt(new Vector3f(r, g, b));
-    }
-    public static Vector3i fromFloat(Vector3f floatValue, int mul) {
-        return new Vector3i((int) (floatValue.x * mul), (int) (floatValue.y * mul), (int) (floatValue.z * mul));
+    public static float randomBetween(RandomSource source, float min, float max) {
+        return Mth.lerp(source.nextFloat(), min, max);
     }
 }

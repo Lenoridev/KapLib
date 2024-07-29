@@ -26,7 +26,7 @@ public class RequestHandler {
             requests.put(nextEmpty, consumer);
             nextEmpty = getNextEmpty(nextEmpty);
         } catch (Exception e) {
-            KapLibMod.LOGGER.warn((Marker) Markers.REQUESTS, "unable to send request of type '{}': {}", ModRegistries.REQUESTABLES_REGISTRY.getKey(requestable), e.getMessage());
+            KapLibMod.LOGGER.warn((Marker) Markers.REQUESTS, "unable to send request of type '{}': {}", ModRegistries.REQUESTABLES.getKey(requestable), e.getMessage());
         }
     }
 

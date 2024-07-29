@@ -1,10 +1,9 @@
 package net.kapitencraft.kap_lib.client.overlay.box;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.kapitencraft.kap_lib.client.LibClient;
 import net.kapitencraft.kap_lib.client.overlay.OverlayController;
-import net.kapitencraft.kap_lib.client.overlay.PositionHolder;
-import net.kapitencraft.kap_lib.client.overlay.holder.RenderHolder;
+import net.kapitencraft.kap_lib.client.overlay.OverlayProperties;
+import net.kapitencraft.kap_lib.client.overlay.holder.Overlay;
 import net.kapitencraft.kap_lib.client.gui.IMenuBuilder;
 import net.kapitencraft.kap_lib.client.widget.menu.Menu;
 import net.kapitencraft.kap_lib.client.widget.menu.drop_down.DropDownMenu;
@@ -20,6 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * box used to resize other things (like a RenderHolder)
+ */
 public class ResizeBox extends ResizeAccessBox implements IMenuBuilder {
     private final List<ResizeAccessBox> boxes = new ArrayList<>();
     private static final int boxColor = 0xFFFFFFFF;
@@ -28,8 +31,8 @@ public class ResizeBox extends ResizeAccessBox implements IMenuBuilder {
     private boolean dirty = false;
 
 
-    public ResizeBox(Vec2 start, Vec2 finish, RenderHolder dedicatedHolder) {
-        super(start, finish, GLFW.GLFW_RESIZE_ALL_CURSOR, new PoseStack(), fillColor, dedicatedHolder, Type.C, null);
+    public ResizeBox(Vec2 start, Vec2 finish, Overlay dedicatedHolder) {
+        super(start, finish, GLFW.GLFW_RESIZE_ALL_CURSOR, fillColor, dedicatedHolder, Type.C, null);
         fillBoxes();
     }
 
@@ -37,7 +40,7 @@ public class ResizeBox extends ResizeAccessBox implements IMenuBuilder {
         this.boxes.clear();
         for (Type type : Type.values()) {
             if (type == Type.C) continue;
-            boxes.add(new ResizeAccessBox(stack, boxColor, dedicatedHolder, type, this));
+            boxes.add(new ResizeAccessBox(boxColor, dedicatedHolder, type, this));
         }
         reapplyPosition();
     }
@@ -94,7 +97,7 @@ public class ResizeBox extends ResizeAccessBox implements IMenuBuilder {
     }
 
     @Override
-    public boolean mouseDrag(double x, double y, int mouseType, double xChange, double yChange, double oldX, double oldY) {
+    public boolean mouseDrag(double x, double y, int clickType, double xChange, double yChange, double oldX, double oldY) {
         if (this.active == null) {
             boolean[] flag = new boolean[]{false};
             boxes.stream().filter(resizeAccessBox -> resizeAccessBox.isMouseOver(oldX, oldY)).findFirst()
@@ -177,11 +180,29 @@ public class ResizeBox extends ResizeAccessBox implements IMenuBuilder {
 
     @Override
     public Menu createMenu(int x, int y) {
+        if (this.dedicatedHolder == null) return null;
         DropDownMenu menu = new DropDownMenu(x, y, this);
-        PositionHolder holder = this.dedicatedHolder.getPos();
-        menu.addElement(listElement -> new EnumElement<>(listElement, menu, Component.translatable("gui.alignment.x"), PositionHolder.Alignment.values(), PositionHolder.Alignment::getWidthName, holder::setXAlignment).value(holder.getXAlignment()));
-        menu.addElement(listElement -> new EnumElement<>(listElement, menu, Component.translatable("gui.alignment.y"), PositionHolder.Alignment.values(), PositionHolder.Alignment::getHeightName, holder::setYAlignment).value(holder.getYAlignment()));
-        menu.addElement(listElement -> new ButtonElement(listElement, menu, Component.translatable("gui.reset_overlay"), this::reset));
+        OverlayProperties properties = this.dedicatedHolder.getProperties();
+        menu.addElement(EnumElement.builder(OverlayProperties.Alignment.class)
+                .setName(Component.translatable("gui.alignment.x"))
+                .setElements(OverlayProperties.Alignment.values())
+                .setNameMapper(OverlayProperties.Alignment::getWidthName)
+                .setOnChange(properties::setXAlignment)
+        );
+        menu.addElement(EnumElement.builder(OverlayProperties.Alignment.class)
+                .setName(Component.translatable("gui.alignment.y"))
+                .setElements(OverlayProperties.Alignment.values())
+                .setNameMapper(OverlayProperties.Alignment::getHeightName)
+                .setOnChange(properties::setYAlignment)
+        );
+        menu.addElement(ButtonElement.builder()
+                .setName(Component.translatable("gui.reset_overlay"))
+                .setExecutor(this::reset)
+        );
+        menu.addElement(ButtonElement.builder()
+                .setName(Component.translatable("gui.hide_overlay"))
+                .setExecutor(properties::hide)
+        );
         return menu;
     }
 

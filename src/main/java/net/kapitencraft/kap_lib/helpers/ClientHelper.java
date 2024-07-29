@@ -3,7 +3,10 @@ package net.kapitencraft.kap_lib.helpers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
-import net.kapitencraft.kap_lib.requirements.Requirement;
+import net.kapitencraft.kap_lib.requirements.RequirementManager;
+import net.kapitencraft.kap_lib.requirements.RequirementType;
+import net.kapitencraft.kap_lib.requirements.type.abstracts.ReqCondition;
+import net.kapitencraft.kap_lib.util.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -114,13 +117,16 @@ public class ClientHelper {
     }
 
 
-    public static <T> void addReqContent(Consumer<Component> consumer, T t, Player player) {
-        List<Requirement<T>> reqs = CollectionHelper.mutableList((List<Requirement<T>>) Requirement.getReqs(t));
+    public static <T> void addReqContent(Consumer<Component> consumer, RequirementType<T> type, T t, Player player) {
+        List<ReqCondition<?>> reqs = CollectionHelper.mutableList(RequirementManager.instance.getReqs(type, t));
         reqs.removeIf(itemRequirement -> itemRequirement.matches(player));
         if (!reqs.isEmpty()) {
             MutableComponent reqList = Component.empty();
-            reqs.stream().map(Requirement::display).forEach(reqList::append);
-            consumer.accept(Component.translatable("item.requires", reqList).withStyle(ChatFormatting.RED));
+            reqs.stream().map(ReqCondition::display)
+                    .filter(MutableComponent.class::isInstance)
+                    .map(MutableComponent.class::cast)
+                    .map(component -> component.withStyle(ChatFormatting.RED))
+                    .forEach(consumer);
         }
     }
 
@@ -145,7 +151,7 @@ public class ClientHelper {
         SpriteSet spriteSet = engine.spriteSets.get(BuiltInRegistries.PARTICLE_TYPE.getKey(ParticleTypes.FIREWORK.getType()));
         FireworkParticles.SparkParticle particle = new FireworkParticles.SparkParticle(level, loc.x, loc.y, loc.z, random.nextGaussian() * 0.05D, -delta.y * 0.5D, random.nextGaussian() * 0.05D, engine, spriteSet);
         particle.setColor(0, 0, 1);
-        particle.setFadeColor(MathHelper.RGBtoInt(new Vector3f(0.5f, 0, 0.5f)));
+        particle.setFadeColor(new Color(.5f, 0, .5f, 1).pack());
         engine.add(particle);
     }
 
