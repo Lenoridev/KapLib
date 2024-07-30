@@ -39,6 +39,25 @@ public class TextHelper {
         }
     }
 
+    public static Component chain(List<? extends Component> toChain, boolean or) {
+        if (toChain.size() == 1) return toChain.get(0);
+        List<Component> copy = new ArrayList<>(toChain);
+        MutableComponent component = Component.empty();
+        component.append(copy.get(0));
+        copy.remove(0);
+        while (copy.size() > 1) {
+            component.append(", ").append(copy.get(0));
+            copy.remove(0);
+        }
+        if (or) {
+            component.append(Component.translatable("component_chain.or"));
+        } else {
+            component.append(Component.translatable("component_chain.and"));
+        }
+        component.append(copy.get(0));
+        return component;
+    }
+
     public static Component listToPlainText(List<Component> list) {
         MutableComponent component = Component.empty();
         for (Component c : list) {

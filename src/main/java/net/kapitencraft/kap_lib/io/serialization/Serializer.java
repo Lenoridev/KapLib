@@ -1,4 +1,4 @@
-package net.kapitencraft.kap_lib.util.serialization;
+package net.kapitencraft.kap_lib.io.serialization;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;

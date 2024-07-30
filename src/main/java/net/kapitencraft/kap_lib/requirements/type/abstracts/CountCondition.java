@@ -2,6 +2,7 @@ package net.kapitencraft.kap_lib.requirements.type.abstracts;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.ToIntFunction;
 
@@ -17,7 +18,7 @@ public abstract class CountCondition<T extends CountCondition<T>> extends ReqCon
     protected abstract Component getCountedDisplay();
 
     @Override
-    public Component display() {
+    public @NotNull Component cacheDisplay() {
         return Component.translatable("item.requires", getCountedDisplay());
     }
 

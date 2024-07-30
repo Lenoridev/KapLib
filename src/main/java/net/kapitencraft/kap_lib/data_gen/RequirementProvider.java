@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.Markers;
 import net.kapitencraft.kap_lib.requirements.RequirementType;
-import net.kapitencraft.kap_lib.requirements.type.abstracts.CountCondition;
+import net.kapitencraft.kap_lib.requirements.type.abstracts.ReqCondition;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
@@ -21,7 +21,7 @@ public abstract class RequirementProvider<T> implements DataProvider {
     private final String modId;
     private final RequirementType<T> type;
 
-    private Map<T, CountCondition<?>> requirements = new HashMap<>();
+    private final Map<T, ReqCondition<?>> requirements = new HashMap<>();
 
     protected RequirementProvider(PackOutput output, String modId, RequirementType<T> type) {
         this.output = output;
@@ -29,14 +29,14 @@ public abstract class RequirementProvider<T> implements DataProvider {
         this.type = type;
     }
 
-    protected void add(T element, CountCondition<?> condition) {
+    protected void add(T element, ReqCondition<?> condition) {
         this.requirements.put(element, condition);
     }
 
     @Override
-    public @NotNull CompletableFuture<?> run(CachedOutput pOutput) {
+    public @NotNull CompletableFuture<?> run(@NotNull CachedOutput pOutput) {
         register();
-        if (requirements != null) {
+        if (!requirements.isEmpty()) {
             return save(pOutput, this.output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(this.modId).resolve("requirements").resolve(this.type.getName() + ".json"));
         }
 
@@ -61,7 +61,7 @@ public abstract class RequirementProvider<T> implements DataProvider {
     protected abstract void register();
 
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return this.modId + "-" + this.type.getName() + "-Requirements";
     }
 }

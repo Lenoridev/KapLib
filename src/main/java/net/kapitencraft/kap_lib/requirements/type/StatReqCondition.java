@@ -2,8 +2,11 @@ package net.kapitencraft.kap_lib.requirements.type;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.kapitencraft.kap_lib.io.serialization.DataGenSerializer;
+import net.kapitencraft.kap_lib.registry.custom.ModRequirementTypes;
 import net.kapitencraft.kap_lib.requirements.type.abstracts.CountCondition;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -99,8 +102,18 @@ public class StatReqCondition extends CountCondition<StatReqCondition> {
     }
 
     @Override
-    public Codec<StatReqCondition> getCodec() {
-        return CODEC;
+    public DataGenSerializer<StatReqCondition> getSerializer() {
+        return ModRequirementTypes.STAT_REQ.get();
+    }
+
+    @Override
+    protected void additionalToNetwork(FriendlyByteBuf buf) {
+        buf.writeUtf(getStatSerializedName(this.stat));
+        buf.writeInt(this.minLevel);
+    }
+
+    public static StatReqCondition fromNetwork(FriendlyByteBuf buf) {
+        return new StatReqCondition(getStatFromSerializedName(buf.readUtf()), buf.readInt());
     }
 
     private Stat<?> getStat() {
@@ -113,6 +126,6 @@ public class StatReqCondition extends CountCondition<StatReqCondition> {
     }
 
     private String getTranslationKey() {
-        return Objects.requireNonNull(ForgeRegistries.STAT_TYPES.getKey(this.stat.getType()), "unknown stat type: " + this.stat.getType().getClass().getCanonicalName()).toString();
+        return Objects.requireNonNull(ForgeRegistries.STAT_TYPES.getKey(this.stat.getType()), "unknown stat type: " + this.stat.getType().getClass().getCanonicalName()).toString().replace(':', '.');
     }
 }

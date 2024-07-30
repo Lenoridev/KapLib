@@ -8,7 +8,6 @@ import net.minecraftforge.eventbus.api.Event;
 @OnlyIn(Dist.CLIENT)
 public class SetUniformEvent extends Event {
 
-
     public SetUniformEvent(ShaderInstance instance) {
     }
 }

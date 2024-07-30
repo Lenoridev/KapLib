@@ -3,7 +3,7 @@ package net.kapitencraft.kap_lib.item.loot_table.conditions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.kapitencraft.kap_lib.registry.ModLootItemConditions;
-import net.kapitencraft.kap_lib.util.serialization.JsonSerializer;
+import net.kapitencraft.kap_lib.io.serialization.JsonSerializer;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 import org.jetbrains.annotations.NotNull;

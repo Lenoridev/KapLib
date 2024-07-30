@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.kapitencraft.kap_lib.registry.ModLootItemConditions;
 import net.kapitencraft.kap_lib.util.Reference;
 import net.kapitencraft.kap_lib.item.loot_table.LootContextReader;
-import net.kapitencraft.kap_lib.util.serialization.JsonSerializer;
+import net.kapitencraft.kap_lib.io.serialization.JsonSerializer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;

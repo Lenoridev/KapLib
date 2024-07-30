@@ -1,6 +1,11 @@
 package net.kapitencraft.kap_lib.event;
 
+import net.kapitencraft.kap_lib.helpers.ClientHelper;
+import net.kapitencraft.kap_lib.io.network.ModMessages;
+import net.kapitencraft.kap_lib.io.network.S2C.SyncRequirementsPacket;
 import net.kapitencraft.kap_lib.requirements.RequirementManager;
+import net.kapitencraft.kap_lib.requirements.RequirementType;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
@@ -40,6 +45,14 @@ public class Events {
 
     @SubscribeEvent
     public static void playerLogIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            ModMessages.sendToClientPlayer(new SyncRequirementsPacket(RequirementManager.instance), serverPlayer);
+        }
         //synchronize Requirements
+    }
+
+    @SubscribeEvent
+    public static void addReqDisplay(ItemTooltipEvent event) {
+        ClientHelper.addReqContent(event.getToolTip()::add, RequirementType.ITEM, event.getItemStack().getItem(), event.getEntity());
     }
 }

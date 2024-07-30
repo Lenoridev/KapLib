@@ -3,6 +3,8 @@ package net.kapitencraft.kap_lib.helpers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
+import net.kapitencraft.kap_lib.KapLibMod;
+import net.kapitencraft.kap_lib.Markers;
 import net.kapitencraft.kap_lib.requirements.RequirementManager;
 import net.kapitencraft.kap_lib.requirements.RequirementType;
 import net.kapitencraft.kap_lib.requirements.type.abstracts.ReqCondition;
@@ -37,7 +39,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -118,8 +119,11 @@ public class ClientHelper {
 
 
     public static <T> void addReqContent(Consumer<Component> consumer, RequirementType<T> type, T t, Player player) {
+        if (RequirementManager.instance == null) {
+            return;
+        }
         List<ReqCondition<?>> reqs = CollectionHelper.mutableList(RequirementManager.instance.getReqs(type, t));
-        reqs.removeIf(itemRequirement -> itemRequirement.matches(player));
+        if (player != null) reqs.removeIf(itemRequirement -> itemRequirement.matches(player));
         if (!reqs.isEmpty()) {
             MutableComponent reqList = Component.empty();
             reqs.stream().map(ReqCondition::display)

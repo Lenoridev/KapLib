@@ -3,6 +3,7 @@ package net.kapitencraft.kap_lib.io.network;
 import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.event.ModEventFactory;
 import net.kapitencraft.kap_lib.event.custom.RegisterRequestEvent;
+import net.kapitencraft.kap_lib.io.network.S2C.SyncRequirementsPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -50,6 +51,7 @@ public class ModMessages {
                 .serverAcceptedVersions(s -> true)
                 .simpleChannel();
         ModEventFactory.fireModEvent(new RegisterRequestEvent(PACKET_HANDLER, messageID));
+        addMessage(SyncRequirementsPacket.class, NetworkDirection.PLAY_TO_CLIENT, SyncRequirementsPacket::new);
     }
 
 

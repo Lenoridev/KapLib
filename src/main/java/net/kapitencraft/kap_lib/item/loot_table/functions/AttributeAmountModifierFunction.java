@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.kapitencraft.kap_lib.item.loot_table.IConditional;
 import net.kapitencraft.kap_lib.item.loot_table.modifiers.ModLootModifier;
 import net.kapitencraft.kap_lib.registry.ModLootItemFunctions;
-import net.kapitencraft.kap_lib.util.serialization.JsonSerializer;
+import net.kapitencraft.kap_lib.io.serialization.JsonSerializer;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
