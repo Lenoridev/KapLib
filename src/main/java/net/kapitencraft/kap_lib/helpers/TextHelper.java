@@ -1,6 +1,7 @@
 package net.kapitencraft.kap_lib.helpers;
 
 import net.kapitencraft.kap_lib.util.Reference;
+import net.kapitencraft.kap_lib.util.Vec2i;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
@@ -141,16 +142,27 @@ public class TextHelper {
         });
     }
 
-    public static String createGiveFromStack(String name, ItemStack stack) {
-        return "/give " + name + " " + BuiltInRegistries.ITEM.getKey(stack.getItem()) + stack.getOrCreateTag();
+    /**
+     *
+     * @param targetSelector the selector of which entity should get the stack
+     * @param stack the stack to convert into a /give command
+     * @return the string that gives any selected target the ItemStack serialized
+     */
+    public static String createGiveFromStack(String targetSelector, ItemStack stack) {
+        return "/give " + targetSelector + " " + ForgeRegistries.ITEMS.getKey(stack.getItem()) + stack.getOrCreateTag();
     }
 
-    public static MutableComponent wrapInObfuscation(MutableComponent source, boolean really) {
-        return really ? Component.literal("§kA§r ").append(source).append(" §kA§r") : source;
+    /**
+     * surrounds the given source with a single obfuscated letter on both sides
+     * @param source the component to wrap
+     * @return a new component wrapped around the obfuscated letters
+     */
+    public static MutableComponent wrapInObfuscation(MutableComponent source) {
+        return Component.literal("§kA§r ").append(source).append(" §kA§r");
     }
 
     public static String makeDescriptionId(Item item) {
-        return Util.makeDescriptionId("item", BuiltInRegistries.ITEM.getKey(item));
+        return Util.makeDescriptionId("item", ForgeRegistries.ITEMS.getKey(item));
     }
 
     public static String wrapInNameMarkers(String name) {
@@ -185,7 +197,6 @@ public class TextHelper {
             serverPlayer.connection.send(new ClientboundClearTitlesPacket(true));
         }
     }
-
 
     private static final List<String> NUMBERS = List.of("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
     private static final List<String> LETTERS_SMALL = List.of("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");

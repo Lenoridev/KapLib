@@ -1,8 +1,6 @@
 package net.kapitencraft.kap_lib.helpers;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -15,6 +13,7 @@ import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.collection.MapStream;
+import net.kapitencraft.kap_lib.io.JsonHelper;
 import net.kapitencraft.kap_lib.io.StringSegment;
 import net.kapitencraft.kap_lib.stream.TriConsumer;
 import net.minecraft.nbt.*;
@@ -153,13 +152,6 @@ public class IOHelper {
                 .map(creator);
     }
 
-    public static <T, K> MapStream<T, K> readMap(CompoundTag tag, String name, BiFunction<CompoundTag, String, T> keyMapper, BiFunction<CompoundTag, String, K> valueMapper) {
-        HashMap<T, K> map = new HashMap<>();
-        readCompoundList(tag, name)
-                .forEach(tag1 -> map.put(keyMapper.apply(tag1, "Key"), valueMapper.apply(tag1, "Value")));
-        return MapStream.of(map);
-    }
-
     public static CompoundTag fromString(String s) {
         try {
             return new TagParser(new StringReader(s)).readStruct();
@@ -220,12 +212,20 @@ public class IOHelper {
         return arrayTag;
     }
 
-    public static <T, K> ListTag writeMap(Map<T, K> map, DataWriter<T> keyWriter, DataWriter<K> valueWriter) {
+    /**
+     * write a map to a list tag for data-saving
+     * @param map the map to write
+     * @param keyWriter the key writer
+     * @param valueWriter the value writer
+     * @return a list tag containing the written map
+     * @see IOHelper#readMap(ListTag, BiFunction, BiFunction) readMap
+     */
+    public static <K, V> ListTag writeMap(Map<K, V> map, DataWriter<K> keyWriter, DataWriter<V> valueWriter) {
         ListTag listTag = new ListTag();
-        map.forEach((t, k) -> {
+        map.forEach((k, v) -> {
             CompoundTag tag = new CompoundTag();
-            tag.put("Key", keyWriter.createData(t));
-            tag.put("Value", valueWriter.createData(k));
+            tag.put("Key", keyWriter.createData(k));
+            tag.put("Value", valueWriter.createData(v));
             listTag.add(tag);
         });
         return listTag;
@@ -235,6 +235,52 @@ public class IOHelper {
     public interface DataWriter<T> {
         Tag createData(T t);
     }
+
+    /**
+     * @param tag the tag in which the map is saved
+     * @param keyExtractor the function that extracts each key out of their entry
+     * @param valueExtractor the function that extracts each value out of their entry
+     * @return a MapStream containing all extracted map entries
+     */
+    public static <K, V> MapStream<K, V> readMap(ListTag tag, BiFunction<CompoundTag, String, K> keyExtractor, BiFunction<CompoundTag, String, V> valueExtractor) {
+        HashMap<K, V> map = new HashMap<>();
+        tag.stream()
+                .filter(CompoundTag.class::isInstance)
+                .map(CompoundTag.class::cast)
+                .forEach(tag1 -> map.put(keyExtractor.apply(tag1, "Key"), valueExtractor.apply(tag1, "Value")));
+        return MapStream.of(map);
+    }
+
+    /**
+     * @param map the map to write
+     * @param keyMapper a function to convert each key of the map into an JsonElement
+     * @param valueMapper a function to convert each value of the map into an JsonElement
+     * @return an JsonArray containing each entry of the map
+     * @see IOHelper#readMap(JsonArray, BiFunction, BiFunction)
+     */
+    public static <K, V> JsonArray writeMap(Map<K, V> map, Function<K, JsonElement> keyMapper, Function<K, JsonElement> valueMapper) {
+        JsonArray array = new JsonArray(map.size());
+        map.forEach((k, v) -> {
+            JsonObject object = new JsonObject();
+            object.add("key", keyMapper.apply(k));
+            object.add("value", valueMapper.apply(k));
+        });
+        return array;
+    }
+
+    /**
+     * @param array the json array containing all map entries
+     * @param keyExtractor a function that extracts each map key out of the entry
+     * @param valueExtractor a function that extracts each map value out of the entry
+     * @return a MapStream containing all the entries extracted
+     */
+    public static <K, V> MapStream<K, V> readMap(JsonArray array, BiFunction<JsonObject, String, K> keyExtractor, BiFunction<JsonObject, String, V> valueExtractor) {
+        HashMap<K, V> map = new HashMap<>();
+        JsonHelper.castToObjects(array)
+                .forEach(object -> map.put(keyExtractor.apply(object, "key"), valueExtractor.apply(object, "value")));
+        return MapStream.of(map);
+    }
+
 
     public static <T> ListTag writeList(List<T> list, Function<T, Tag> mapper) {
         ListTag tag = new ListTag();

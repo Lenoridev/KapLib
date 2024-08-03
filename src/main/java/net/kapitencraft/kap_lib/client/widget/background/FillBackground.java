@@ -11,6 +11,6 @@ public class FillBackground extends WidgetBackground {
 
     @Override
     public void render(boolean scissorEnabled, GuiGraphics graphics, int x, int y, int width, int height, float offsetX, float offsetY) {
-        graphics.fill(x, y, x + width, y + width, color);
+        graphics.fill(x, y, x + width, y + height, color);
     }
 }

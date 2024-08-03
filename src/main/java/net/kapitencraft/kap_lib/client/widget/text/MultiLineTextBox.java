@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -45,6 +46,7 @@ public class MultiLineTextBox extends ScrollableWidget {
     private final Font font;
     /** Has the current text being edited on the textbox. */
     private final List<String> lineValues = new ArrayList<>();
+    private final List<Integer> lineEndIndexes = new ArrayList<>();
     private String value = "";
     private int frame;
     /** if true the textbox can lose focus by clicking elsewhere on the screen */
@@ -73,6 +75,9 @@ public class MultiLineTextBox extends ScrollableWidget {
     private Consumer<List<String>> textConsumer = (list)-> {};
     /** Called to check if the text is valid */
     private Predicate<String> filter = Objects::nonNull;
+    private Consumer<Integer> lineCreationConsumer = i -> {};
+    private Consumer<Integer> lineRemovedConsumer = i -> {};
+    private BiConsumer<Integer, String> lineModificationConsumer = (integer, string) -> {};
     /**
      * formatter formatting line text with color;
      * <br> {@code string}: text content
@@ -114,6 +119,38 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.formatter = formatter::format;
     }
 
+    public void setTextColor(int textColor) {
+        this.textColor = textColor;
+    }
+
+    public void setTextColorUneditable(int textColorUneditable) {
+        this.textColorUneditable = textColorUneditable;
+    }
+
+    /**
+     * set the line creation hook
+     * <br>called whenever a new line is added to the textbox
+     */
+    public void onLineCreated(Consumer<Integer> lineCreationConsumer) {
+        this.lineCreationConsumer = lineCreationConsumer;
+    }
+
+    /**
+     * set the line modification hook
+     * <br>called whenever a line is modified
+     */
+    public void onLineModified(BiConsumer<Integer, String> lineModificationConsumer) {
+        this.lineModificationConsumer = lineModificationConsumer;
+    }
+
+    /**
+     * set the line remove hook
+     * <br>called whenever a line is removed
+     */
+    public void onLineRemoved(Consumer<Integer> lineRemovedConsumer) {
+        this.lineRemovedConsumer = lineRemovedConsumer;
+    }
+
     /**
      * Increments the cursor counter
      */
@@ -121,7 +158,7 @@ public class MultiLineTextBox extends ScrollableWidget {
         ++this.frame;
     }
 
-    protected MutableComponent createNarrationMessage() {
+    protected @NotNull MutableComponent createNarrationMessage() {
         Component component = this.getMessage();
         return Component.translatable("gui.narrate.editBox", component, this.value);
     }
@@ -140,7 +177,7 @@ public class MultiLineTextBox extends ScrollableWidget {
     }
 
     /**
-     * Returns the contents of the textbox
+     * Returns the 1d contents of the textbox
      */
     public String getValue() {
         return this.value;
@@ -176,28 +213,120 @@ public class MultiLineTextBox extends ScrollableWidget {
         String s1 = (new StringBuilder(this.value)).replace(selectionStart, selectionEnd, insert).toString();
         if (this.filter.test(s1)) {
             this.value = s1;
-            applyText2d();
+            updateText2d(insert, selectionStart, selectionEnd);
             this.setCursorPosition(selectionStart + Math.max(0, insertLength));
             this.setHighlightPos(this.cursorPos);
             this.onValueChange(this.value);
         }
     }
 
+    private void updateText2d(String insert, int selectionStart, int selectionEnd) {
+        List<String> insert2d = "\n".equals(insert) ? List.of("", "") : List.of(insert.split("\n"));
+        Vec2i startLineIndex = get2dPositionFrom1dPosition(selectionStart);
+        Vec2i endLineIndex = get2dPositionFrom1dPosition(selectionEnd);
+
+        if (insert2d.isEmpty()) {
+            KapLibMod.LOGGER.warn("trying to insert nothing into Multiline textbox; skipping!");
+            return;
+        }
+
+        String lastLineRemaining = this.getFromEndSection(endLineIndex);
+        if (insert2d.size() > 1) this.updateLine(startLineIndex.y, this.getFromStartSection(startLineIndex) + insert2d.get(0));
+        int lineIndex = startLineIndex.y;
+        for (int i = 1; i < insert2d.size(); i++) {
+            if (lineIndex < endLineIndex.y) {
+                this.updateLine(lineIndex, insert2d.get(i));
+            } else {
+                this.addLine(lineIndex + 1, insert2d.get(i));
+            }
+            lineIndex++;
+        }
+        int removeLineFirstIndex = Math.max(lineIndex, startLineIndex.y + 1);
+        for (int i = removeLineFirstIndex; i <= endLineIndex.y; i++) {
+            this.removeLine(removeLineFirstIndex);
+        }
+        this.updateLine(lineIndex, (insert2d.size() == 1 ? this.getFromStartSection(startLineIndex) : "") + insert2d.get(insert2d.size()-1) + lastLineRemaining);
+    }
+
+    private void notifyCreationAndChange(int index) {
+        this.lineEndIndexes.add(index, lineValues.get(index).length());
+        this.lineCreationConsumer.accept(index);
+        notifyChange(index);
+    }
+
+    private String getFromStartSection(Vec2i def) {
+        return lineValues.get(def.y).substring(0, def.x);
+    }
+
+    private String getFromEndSection(Vec2i def) {
+        return lineValues.get(def.y).substring(def.x);
+    }
+
+    private void updateLine(int index, String insert) {
+        if (insert != null && !insert.equals(this.lineValues.get(index))) {
+            this.lineValues.set(index, insert);
+            this.notifyChange(index);
+        }
+    }
+
+    private void addLine(int index, String insert) {
+        this.lineValues.add(index, insert);
+        this.notifyCreationAndChange(index);
+    }
+
+    private void removeLine(int index) {
+        this.lineValues.remove(index);
+        this.lineRemovedConsumer.accept(index);
+    }
+
+    private void notifyChange(int index) {
+        this.lineEndIndexes.set(index, this.lineValues.get(index).length());
+        this.lineModificationConsumer.accept(index, this.lineValues.get(index));
+    }
+
+    //TODO complete
+
+    private Vec2i get2dPositionFrom1dPosition(int pos) {
+        int loc = 0;
+        for (int i = 0; i < lineEndIndexes.size(); i++) {
+            if (pos <= loc + lineEndIndexes.get(i)) {
+                if (pos - loc < 0 || pos - loc > lineEndIndexes.get(i)) {
+                    KapLibMod.LOGGER.error("illegal x location detected: {}", cursorPos - loc);
+                }
+                return new Vec2i(pos - loc, i);
+            }
+            loc += lineEndIndexes.get(i);
+            loc++;
+        }
+        return new Vec2i(0, 0);
+    }
+
     /**
      * reapply the simple value to its 2d list
      */
     private void applyText2d() {
+        List<String> oldValues = new ArrayList<>(this.lineValues);
         this.lineValues.clear();
         StringBuilder builder = new StringBuilder();
+        int lineIndex = 0;
         for (int i = 0; i < this.value.length(); i++) {
             char c = this.value.charAt(i);
             if (c == '\n') {
                 lineValues.add(builder.toString());
+                if (!Objects.equals(oldValues.get(lineIndex), lineValues.get(lineIndex))) {
+                    lineModificationConsumer.accept(lineIndex, lineValues.get(lineIndex));
+                }
+                lineIndex++;
                 builder = new StringBuilder();
             }
             else builder.append(c);
         }
         lineValues.add(builder.toString());
+        if (lineValues.size() > oldValues.size()) {
+            for (int i = oldValues.size(); i < lineValues.size(); i++) {
+                this.notifyCreationAndChange(i);
+            }
+        }
     }
 
     private void onValueChange(String pNewText) {
@@ -353,15 +482,15 @@ public class MultiLineTextBox extends ScrollableWidget {
 
     private void reapplyCursor2d() {
         int loc = 0;
-        for (int i = 0; i < lineValues.size(); i++) {
-            if (cursorPos <= loc + lineValues.get(i).length()) {
+        for (int i = 0; i < lineEndIndexes.size(); i++) {
+            if (cursorPos <= loc + lineEndIndexes.get(i)) {
                 this.cursorPos2d = new Vec2i(cursorPos - loc, i);
-                if (cursorPos - loc < 0 || cursorPos - loc > this.lineValues.get(i).length()) {
+                if (cursorPos - loc < 0 || cursorPos - loc > lineEndIndexes.get(i)) {
                     KapLibMod.LOGGER.error("cursor index set to illegal x state: {}", cursorPos - loc);
                 }
                 return;
             }
-            loc += lineValues.get(i).length();
+            loc += lineEndIndexes.get(i);
             loc++;
         }
     }
@@ -369,14 +498,14 @@ public class MultiLineTextBox extends ScrollableWidget {
     private void reapplyHighlight2d() {
         int loc = 0;
         for (int i = 0; i < lineValues.size(); i++) {
-            if (highlightPos <= loc + lineValues.get(i).length()) {
+            if (highlightPos <= loc + lineEndIndexes.get(i)) {
                 this.highlightPos2d = new Vec2i(highlightPos - loc, i);
-                if (highlightPos - loc < 0 || highlightPos - loc > this.lineValues.get(i).length()) {
+                if (highlightPos - loc < 0 || highlightPos - loc > this.lineEndIndexes.get(i)) {
                     KapLibMod.LOGGER.error("highlight index set to illegal x state: {}", highlightPos - loc);
                 }
                 return;
             }
-            loc += lineValues.get(i).length();
+            loc += lineEndIndexes.get(i);
             loc++;
         }
     }
@@ -565,8 +694,6 @@ public class MultiLineTextBox extends ScrollableWidget {
 
         pGuiGraphics.enableScissor(textXStart, getY(), getX() + this.width, getY() + this.height);
 
-        //background
-
         //actual text
         pGuiGraphics.pose().pushPose();
         pGuiGraphics.pose().translate((float)textXStart, (float)getY(), 0.0F);
@@ -622,7 +749,7 @@ public class MultiLineTextBox extends ScrollableWidget {
     }
 
     private int getLineMarkerWidth() {
-        return this.lineRenderType == LineRenderType.DISABLED ? 0 : 20;
+        return this.lineRenderType == LineRenderType.DISABLED ? 0 : 40;
     }
 
     private void renderHighlight(int lineIndex, String line, GuiGraphics graphics, int x, int y) {

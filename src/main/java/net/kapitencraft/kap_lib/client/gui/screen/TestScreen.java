@@ -2,8 +2,10 @@ package net.kapitencraft.kap_lib.client.gui.screen;
 
 import net.kapitencraft.kap_lib.client.widget.text.MultiLineTextBox;
 import net.kapitencraft.kap_lib.client.widget.background.WidgetBackground;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
@@ -26,6 +28,12 @@ public class TestScreen extends Screen {
         textBox = new MultiLineTextBox(this.font, width / 2 - widgetWidth / 2, height / 2 - widgetHeight / 2, widgetWidth, widgetHeight, textBox, Component.empty());
         textBox.setBackground(WidgetBackground.fill(0xFF000000));
         textBox.setLineRenderType(MultiLineTextBox.LineRenderType.EVERY);
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player != null) {
+            textBox.onLineCreated(integer -> player.sendSystemMessage(Component.literal("Created line: " + integer)));
+            textBox.onLineModified((integer, string) -> player.sendSystemMessage(Component.literal("Line " + integer + " was modified to: " + string)));
+            textBox.onLineRemoved(integer -> player.sendSystemMessage(Component.literal("Removed line: " + integer)));
+        }
         this.addRenderableWidget(textBox);
     }
 
