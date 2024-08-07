@@ -3,8 +3,6 @@ package net.kapitencraft.kap_lib.helpers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
-import net.kapitencraft.kap_lib.KapLibMod;
-import net.kapitencraft.kap_lib.Markers;
 import net.kapitencraft.kap_lib.requirements.RequirementManager;
 import net.kapitencraft.kap_lib.requirements.RequirementType;
 import net.kapitencraft.kap_lib.requirements.type.abstracts.ReqCondition;
@@ -37,10 +35,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.ApiStatus;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 @OnlyIn(Dist.CLIENT)
@@ -117,7 +119,18 @@ public class ClientHelper {
         graphics.drawCenteredString(font, toDraw, xDrawStart, yDrawStart, color);
     }
 
+    /**
+     * @param arrowId the id of the cursor any of {@link GLFW#GLFW_ARROW_CURSOR} to {@link GLFW#GLFW_HAND_CURSOR}
+     */
+    public static void changeCursorType(int arrowId) {
+        Minecraft minecraft = Minecraft.getInstance();
+        long windowId = minecraft.getWindow().getWindow();
+        minecraft.execute(()-> GLFW.glfwSetCursor(windowId, GLFW.glfwCreateStandardCursor(arrowId)));
+    }
 
+    /**
+     * add requirement text (e.g. "can only be used in the Nether") to the tooltip given as {@code consumer}
+     */
     public static <T> void addReqContent(Consumer<Component> consumer, RequirementType<T> type, T t, Player player) {
         if (RequirementManager.instance == null) {
             return;
@@ -134,35 +147,48 @@ public class ClientHelper {
         }
     }
 
+    /**
+     * @return whether the GUI (including overlays) is disabled
+     */
     public static boolean hideGui() {
         return Minecraft.getInstance().options.hideGui;
     }
 
+    /**
+     * spawn mana boost particles for the elytra
+     * <br> color: blue -> purple
+     */
     @SuppressWarnings("all")
-    public static void sendManaBoostParticles(Entity target, RandomSource random, Vec3 delta) {
+    public static void sendElytraBoostParticles(Entity target, RandomSource random, Vec3 delta, Color startColor, Color fadeColor) {
         Level level = target.level();
         if (!level.isClientSide()) return;
         ClientLevel clientLevel = (ClientLevel) level;
         Vec3 loc = MathHelper.getHandHoldingItemAngle(HumanoidArm.LEFT, target);
-        addParticle(clientLevel, loc, random, delta);
+        addParticle(clientLevel, loc, random, delta, startColor, fadeColor);
         loc = MathHelper.getHandHoldingItemAngle(HumanoidArm.RIGHT, target);
-        addParticle(clientLevel, loc, random, delta);
+        addParticle(clientLevel, loc, random, delta, startColor, fadeColor);
     }
 
-    @SuppressWarnings("all")
-    private static void addParticle(ClientLevel level, Vec3 loc, RandomSource random, Vec3 delta) {
+
+    @ApiStatus.Internal
+    private static void addParticle(ClientLevel level, Vec3 loc, RandomSource random, Vec3 delta, Color startColor, Color fadeColor) {
         ParticleEngine engine = Minecraft.getInstance().particleEngine;
-        SpriteSet spriteSet = engine.spriteSets.get(BuiltInRegistries.PARTICLE_TYPE.getKey(ParticleTypes.FIREWORK.getType()));
+        SpriteSet spriteSet = engine.spriteSets.get(ForgeRegistries.PARTICLE_TYPES.getKey(ParticleTypes.FIREWORK.getType()));
         FireworkParticles.SparkParticle particle = new FireworkParticles.SparkParticle(level, loc.x, loc.y, loc.z, random.nextGaussian() * 0.05D, -delta.y * 0.5D, random.nextGaussian() * 0.05D, engine, spriteSet);
-        particle.setColor(0, 0, 1);
-        particle.setFadeColor(new Color(.5f, 0, .5f, 1).pack());
+        particle.setColor(startColor.r, startColor.g, startColor.b);
+        particle.setFadeColor(fadeColor.pack());
         engine.add(particle);
     }
 
+    /**
+     * similar to {@link GuiGraphics#fill(int, int, int, int, int) GuiGraphics#fill}
+     * <br>but uses floats as positioning
+     */
     public static void fill(GuiGraphics graphics, float xStart, float yStart, float xEnd, float yEnd, int color, int blitOffset) {
         innerFill(graphics.pose().last().pose(), xStart, yStart, xEnd, yEnd, color, blitOffset);
     }
 
+    @ApiStatus.Internal
     private static void innerFill(Matrix4f p_254518_, float xStart, float yStart, float xEnd, float yEnd, int color, int blitOffset) {
         if (xStart < xEnd) {
             float i = xStart;
@@ -193,14 +219,19 @@ public class ClientHelper {
         RenderSystem.disableBlend();
     }
 
-    @SuppressWarnings("All")
+    /**
+     * @return the width of the currently open screen
+     */
     public static float getScreenWidth() {
-        return Minecraft.getInstance().screen.width;
+        return Objects.requireNonNull(Minecraft.getInstance().screen, "active screen is null!").width;
     }
 
-    @SuppressWarnings("All")
+
+    /**
+     * @return the height of the currently open screen
+     */
     public static float getScreenHeight() {
-        return Minecraft.getInstance().screen.height;
+        return Objects.requireNonNull(Minecraft.getInstance().screen, "active screen is null!").height;
     }
 
 }

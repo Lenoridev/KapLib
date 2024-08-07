@@ -4,7 +4,10 @@ import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.client.widget.ScrollableWidget;
 import net.kapitencraft.kap_lib.client.widget.background.WidgetBackground;
 import net.kapitencraft.kap_lib.config.ClientModConfig;
+import net.kapitencraft.kap_lib.helpers.ClientHelper;
 import net.kapitencraft.kap_lib.helpers.MathHelper;
+import net.kapitencraft.kap_lib.helpers.TextHelper;
+import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -27,13 +30,13 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import net.kapitencraft.kap_lib.util.Vec2i;
+import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -65,7 +68,8 @@ public class MultiLineTextBox extends ScrollableWidget {
     private int textColorUneditable = 7368816;
     private WidgetBackground background = WidgetBackground.fill(BACKGROUND_COLOR);
     @Nullable
-    private String suggestion;
+    private ISuggestion suggestionBuilder;
+    private List<Component> suggestions;
     /**
      * whether, and how lines should be marked
     */
@@ -83,7 +87,7 @@ public class MultiLineTextBox extends ScrollableWidget {
      * <br> {@code string}: text content
      * <br> {@code i}: line index
      */
-    private BiFunction<String, Integer, FormattedCharSequence> formatter = (string, i) -> FormattedCharSequence.forward(string, Style.EMPTY);
+    private IFormatter formatter = (string, i) -> FormattedCharSequence.forward(string, Style.EMPTY);
     @Nullable
     private Component hint;
 
@@ -111,12 +115,8 @@ public class MultiLineTextBox extends ScrollableWidget {
      * set the color formatter for each line
      * <br> <i>this is not line sensitive, it only contains the String for each line</i>
      */
-    public void setFormatter(BiFunction<String, Integer, FormattedCharSequence> pTextFormatter) {
+    public void setFormatter(IFormatter pTextFormatter) {
         this.formatter = pTextFormatter;
-    }
-
-    public void setFormatter(IFormatter formatter) {
-        this.formatter = formatter::format;
     }
 
     public void setTextColor(int textColor) {
@@ -125,6 +125,18 @@ public class MultiLineTextBox extends ScrollableWidget {
 
     public void setTextColorUneditable(int textColorUneditable) {
         this.textColorUneditable = textColorUneditable;
+    }
+
+    public void setTextCallback(ITextCallback callback) {
+        this.onLineCreated(callback::lineCreated);
+        this.onLineModified(callback::lineModified);
+        this.onLineRemoved(callback::lineRemoved);
+    }
+
+    public void setIDE(IDE ide) {
+        this.setTextCallback(ide);
+        this.setFormatter(ide);
+        this.setSuggestionBuilder(ide);
     }
 
     /**
@@ -141,6 +153,10 @@ public class MultiLineTextBox extends ScrollableWidget {
      */
     public void onLineModified(BiConsumer<Integer, String> lineModificationConsumer) {
         this.lineModificationConsumer = lineModificationConsumer;
+    }
+
+    public void onTextModified(Consumer<List<String>> textConsumer) {
+        this.textConsumer = textConsumer;
     }
 
     /**
@@ -213,9 +229,9 @@ public class MultiLineTextBox extends ScrollableWidget {
         String s1 = (new StringBuilder(this.value)).replace(selectionStart, selectionEnd, insert).toString();
         if (this.filter.test(s1)) {
             this.value = s1;
-            updateText2d(insert, selectionStart, selectionEnd);
-            this.setCursorPosition(selectionStart + Math.max(0, insertLength));
+            this.setCursorPosition1d(selectionStart + Math.max(0, insertLength));
             this.setHighlightPos(this.cursorPos);
+            updateText2d(insert, selectionStart, selectionEnd);
             this.onValueChange(this.value);
         }
     }
@@ -248,10 +264,10 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.updateLine(lineIndex, (insert2d.size() == 1 ? this.getFromStartSection(startLineIndex) : "") + insert2d.get(insert2d.size()-1) + lastLineRemaining);
     }
 
-    private void notifyCreationAndChange(int index) {
+    private void notifyCreationAndChange(int index, boolean updateText) {
         this.lineEndIndexes.add(index, lineValues.get(index).length());
         this.lineCreationConsumer.accept(index);
-        notifyChange(index);
+        this.notifyChange(index, updateText);
     }
 
     private String getFromStartSection(Vec2i def) {
@@ -265,13 +281,13 @@ public class MultiLineTextBox extends ScrollableWidget {
     private void updateLine(int index, String insert) {
         if (insert != null && !insert.equals(this.lineValues.get(index))) {
             this.lineValues.set(index, insert);
-            this.notifyChange(index);
+            this.notifyChange(index, true);
         }
     }
 
     private void addLine(int index, String insert) {
         this.lineValues.add(index, insert);
-        this.notifyCreationAndChange(index);
+        this.notifyCreationAndChange(index, true);
     }
 
     private void removeLine(int index) {
@@ -279,19 +295,19 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.lineRemovedConsumer.accept(index);
     }
 
-    private void notifyChange(int index) {
-        this.lineEndIndexes.set(index, this.lineValues.get(index).length());
-        this.lineModificationConsumer.accept(index, this.lineValues.get(index));
+    private void notifyChange(int index, boolean updateText) {
+        String value = this.lineValues.get(index);
+        this.lineEndIndexes.set(index, value.length());
+        this.lineModificationConsumer.accept(index, value);
+        if (updateText) this.textConsumer.accept(this.lineValues);
     }
-
-    //TODO complete
 
     private Vec2i get2dPositionFrom1dPosition(int pos) {
         int loc = 0;
         for (int i = 0; i < lineEndIndexes.size(); i++) {
             if (pos <= loc + lineEndIndexes.get(i)) {
                 if (pos - loc < 0 || pos - loc > lineEndIndexes.get(i)) {
-                    KapLibMod.LOGGER.error("illegal x location detected: {}", cursorPos - loc);
+                    KapLibMod.LOGGER.error("illegal x location detected: {}", pos - loc);
                 }
                 return new Vec2i(pos - loc, i);
             }
@@ -309,12 +325,14 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.lineValues.clear();
         StringBuilder builder = new StringBuilder();
         int lineIndex = 0;
+        boolean textChanged = false;
         for (int i = 0; i < this.value.length(); i++) {
             char c = this.value.charAt(i);
             if (c == '\n') {
                 lineValues.add(builder.toString());
                 if (!Objects.equals(oldValues.get(lineIndex), lineValues.get(lineIndex))) {
-                    lineModificationConsumer.accept(lineIndex, lineValues.get(lineIndex));
+                    this.notifyChange(lineIndex, false);
+                    textChanged = true;
                 }
                 lineIndex++;
                 builder = new StringBuilder();
@@ -324,9 +342,11 @@ public class MultiLineTextBox extends ScrollableWidget {
         lineValues.add(builder.toString());
         if (lineValues.size() > oldValues.size()) {
             for (int i = oldValues.size(); i < lineValues.size(); i++) {
-                this.notifyCreationAndChange(i);
+                this.notifyCreationAndChange(i, false);
+                textChanged = true;
             }
         }
+        if (textChanged) textConsumer.accept(this.lineValues);
     }
 
     private void onValueChange(String pNewText) {
@@ -429,7 +449,7 @@ public class MultiLineTextBox extends ScrollableWidget {
      * Moves the text cursor by a specified number of characters
      */
     public void moveCursor(int pDelta) {
-        this.moveCursorTo(this.getCursorPos(pDelta));
+        this.setCursorPosition2d(this.getCursorPos(pDelta));
     }
 
     /**
@@ -439,7 +459,7 @@ public class MultiLineTextBox extends ScrollableWidget {
         int curXWidth = this.font.width(this.lineValues.get(this.cursorPos2d.y).substring(0, this.cursorPos2d.x));
         int newY = Mth.clamp(this.cursorPos2d.y + pDelta, 0,  this.lineValues.size() - 1);
         String subs = this.font.plainSubstrByWidth(this.lineValues.get(newY), curXWidth);
-        this.moveCursorTo(subs.length(), newY);
+        this.setCursorPosition2d(subs.length(), newY);
     }
 
     private int getCursorPos(int pDelta) {
@@ -449,8 +469,8 @@ public class MultiLineTextBox extends ScrollableWidget {
     /**
      * Sets the current position of the cursor.
      */
-    public void moveCursorTo(int pPos) {
-        this.setCursorPosition(pPos);
+    public void setCursorPosition2d(int pPos) {
+        this.setCursorPosition1d(pPos);
         if (!this.shiftPressed) {
             this.setHighlightPos(this.cursorPos);
         }
@@ -458,7 +478,7 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.onValueChange(this.value);
     }
 
-    private void moveCursorTo(int xPos, int yPos) {
+    private void setCursorPosition2d(int xPos, int yPos) {
         this.cursorPos2d = new Vec2i(xPos, yPos);
         int pos = 0;
         int line = 0;
@@ -475,7 +495,7 @@ public class MultiLineTextBox extends ScrollableWidget {
     /**
      * Sets the position of the text cursor
      */
-    public void setCursorPosition(int pPos) {
+    public void setCursorPosition1d(int pPos) {
         this.cursorPos = Mth.clamp(pPos, 0, this.value.length());
         reapplyPositionsAndScroll();
     }
@@ -492,6 +512,10 @@ public class MultiLineTextBox extends ScrollableWidget {
             }
             loc += lineEndIndexes.get(i);
             loc++;
+        }
+        List<Component> suggestions = this.applySuggestions(this.lineValues.get(this.cursorPos2d.y).substring(Math.max(0, this.getWordPosition(-1)), this.cursorPos2d.x));
+        if (!suggestions.isEmpty()) {
+            this.suggestions = suggestions;
         }
     }
 
@@ -511,24 +535,23 @@ public class MultiLineTextBox extends ScrollableWidget {
     }
 
     private void reapplyPositionsAndScroll() {
-        this.shiftPressed = Screen.hasShiftDown();
         reapplyCursor2d();
         this.updateScroll(false);
-        if (!this.shiftPressed) this.moveHighlightToCursor();
+        if (!Screen.hasShiftDown()) this.moveHighlightToCursor();
     }
 
     /**
      * Moves the cursor to the very start of this text box.
      */
     public void moveCursorToStart() {
-        this.moveCursorTo(0);
+        this.setCursorPosition2d(0);
     }
 
     /**
      * Moves the cursor to the very end of this text box.
      */
     public void moveCursorToEnd() {
-        this.moveCursorTo(this.value.length());
+        this.setCursorPosition2d(this.value.length());
     }
 
     /**
@@ -595,7 +618,7 @@ public class MultiLineTextBox extends ScrollableWidget {
                     case 262 -> {
                         //move right
                         if (Screen.hasControlDown()) {
-                            this.moveCursorTo(this.getWordPosition(1));
+                            this.setCursorPosition2d(this.getWordPosition(1));
                         } else {
                             this.moveCursor(1);
                         }
@@ -604,7 +627,7 @@ public class MultiLineTextBox extends ScrollableWidget {
                     case 263 -> {
                         //move left
                         if (Screen.hasControlDown()) {
-                            this.moveCursorTo(this.getWordPosition(-1));
+                            this.setCursorPosition2d(this.getWordPosition(-1));
                         } else {
                             this.moveCursor(-1);
                         }
@@ -664,14 +687,14 @@ public class MultiLineTextBox extends ScrollableWidget {
      */
     public void onClick(double pMouseX, double pMouseY) {
         if (this.value.isEmpty()) {
-            this.moveCursorTo(0);
+            this.setCursorPosition2d(0);
             return;
         }
         int xOffset = Mth.floor(pMouseX) - this.getX() - Mth.floor(this.scrollX) - this.getLineMarkerWidth();
         int yOffset = Mth.floor(pMouseY) - this.getY() - Mth.floor(this.scrollY);
         int line = Mth.clamp(yOffset / 10, 0, this.lineValues.size() - 1);
 
-        this.moveCursorTo(this.font.plainSubstrByWidth(this.lineValues.get(line), xOffset).length(), line);
+        this.setCursorPosition2d(this.font.plainSubstrByWidth(this.lineValues.get(line), xOffset).length(), line);
     }
 
     private void moveHighlightToCursor() {
@@ -679,16 +702,21 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.highlightPos2d = this.cursorPos2d;
     }
 
+    /**
+     * call when closing the widget
+     */
+    public void onClose() {
+        ClientHelper.changeCursorType(GLFW.GLFW_ARROW_CURSOR);
+    }
+
     public void playDownSound(@NotNull SoundManager pHandler) {
     }
 
     public void renderWidget(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         //modify cursor
-        //Minecraft minecraft = Minecraft.getInstance();
-        //minecraft.execute(()-> GLFW.glfwSetCursor(minecraft.getWindow().getWindow(), this.isHovered() ? GLFW.GLFW_IBEAM_CURSOR : GLFW.GLFW_ARROW_CURSOR));
+        ClientHelper.changeCursorType(this.isHovered() ? GLFW.GLFW_IBEAM_CURSOR : GLFW.GLFW_ARROW_CURSOR);
 
         this.background.render(false, pGuiGraphics, getX(), getY(), this.width, this.height, this.scrollX, this.scrollY);
-
 
         int textXStart = this.getX() + this.getLineMarkerWidth();
 
@@ -698,35 +726,29 @@ public class MultiLineTextBox extends ScrollableWidget {
         pGuiGraphics.pose().pushPose();
         pGuiGraphics.pose().translate((float)textXStart, (float)getY(), 0.0F);
         int textColor = this.isEditable ? this.textColor : this.textColorUneditable;
+        int x = Mth.floor(this.scrollX);
+        int yBase = Mth.floor(this.scrollY);
+        int cursorX = x + this.font.width(getFromStartSection(cursorPos2d));
         for (int lineIndex = 0; lineIndex < lineValues.size(); lineIndex++) {
 
             String line = lineValues.get(lineIndex);
             boolean cursorInLine = cursorPos2d.y == lineIndex;
             boolean showCursor = this.isFocused() && this.frame / 6 % 2 == 0 && cursorInLine;
-            int x = Mth.floor(this.scrollX);
-            int y = Mth.floor(this.scrollY) + lineIndex * 10;
-            int j1 = x;
+            int y = yBase + lineIndex * 10;
 
             if (!line.isEmpty()) {
-                pGuiGraphics.drawString(this.font, this.formatter.apply(line, lineIndex), x, y, textColor);
-                if (cursorInLine) {
-                    j1 += this.font.width(line.substring(0, cursorPos2d.x));
-                }
+                pGuiGraphics.drawString(this.font, this.formatter.format(line, lineIndex), x, y, textColor);
             }
 
             if (this.hint != null && line.isEmpty() && !this.isFocused()) {
-                pGuiGraphics.drawString(this.font, this.hint, j1, y, textColor);
-            }
-
-            if (false&& this.suggestion != null) {
-                pGuiGraphics.drawString(this.font, this.suggestion, j1 - 1, y, -8355712);
+                pGuiGraphics.drawString(this.font, this.hint, cursorX, y, textColor);
             }
 
             if (showCursor) {
                 if (!this.value.isEmpty()) {
-                    pGuiGraphics.fill(RenderType.guiOverlay(), j1, y - 1, j1 + 1, y + 1 + 9, CURSOR_INSERT_COLOR);
+                    pGuiGraphics.fill(RenderType.guiOverlay(), cursorX, y - 1, cursorX + 1, y + 1 + 9, CURSOR_INSERT_COLOR);
                 } else {
-                    pGuiGraphics.drawString(this.font, CURSOR_APPEND_CHARACTER, j1, y, textColor);
+                    pGuiGraphics.drawString(this.font, CURSOR_APPEND_CHARACTER, cursorX, y, textColor);
                 }
             }
 
@@ -739,13 +761,31 @@ public class MultiLineTextBox extends ScrollableWidget {
         pGuiGraphics.pose().popPose();
         pGuiGraphics.disableScissor();
 
+        pGuiGraphics.pose().pushPose();
+        pGuiGraphics.pose().translate(this.getX(), this.getY(), 0);
         if (this.lineRenderType != LineRenderType.DISABLED) {
             pGuiGraphics.enableScissor(getX(), getY(), getX() + this.getLineMarkerWidth(), getY() + this.height);
             for (int i = 0; i < lineValues.size(); i++) {
-                if (i % this.lineRenderType.lineOffset == 0) pGuiGraphics.drawString(this.font, String.valueOf(i+1), this.getX() + 1, this.getY() + Mth.floor(scrollY) + i * 10, textColor);
+                if (i % this.lineRenderType.lineOffset == 0) pGuiGraphics.drawString(this.font, String.valueOf(i+1), 1, yBase + i * 10, textColor);
             }
             pGuiGraphics.disableScissor();
         }
+        if (this.suggestions != null && !this.suggestions.isEmpty()) pGuiGraphics.renderComponentTooltip(this.font, this.suggestions, cursorX, yBase + (cursorPos2d.y + 1) * 10);
+        pGuiGraphics.pose().popPose();
+    }
+
+    private List<Component> applySuggestions(String string) {
+        List<String> suggestions;
+        if (suggestionBuilder == null) suggestions = List.of(string);
+        else {
+            suggestions = this.suggestionBuilder.suggestions(string);
+        }
+        List<Component> components = new ArrayList<>();
+        suggestions.forEach(string1 -> {
+            int boldIndex = TextHelper.getMatchingAmount(string, string1);
+            components.add(Component.literal(string1.substring(0, boldIndex)).withStyle(ChatFormatting.BOLD).append(string1.substring(boldIndex)));
+        });
+        return components;
     }
 
     private int getLineMarkerWidth() {
@@ -816,7 +856,7 @@ public class MultiLineTextBox extends ScrollableWidget {
      * @param pEvent the focus navigation event.
      */
     @Nullable
-    public ComponentPath nextFocusPath(FocusNavigationEvent pEvent) {
+    public ComponentPath nextFocusPath(@NotNull FocusNavigationEvent pEvent) {
         return this.visible && this.isEditable ? super.nextFocusPath(pEvent) : null;
     }
 
@@ -903,8 +943,8 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.visible = pIsVisible;
     }
 
-    public void setSuggestion(@Nullable String pSuggestion) {
-        this.suggestion = pSuggestion;
+    public void setSuggestionBuilder(@Nullable ISuggestion pSuggestion) {
+        this.suggestionBuilder = pSuggestion;
     }
 
     public void setTextChangeHook(Consumer<List<String>> textConsumer) {

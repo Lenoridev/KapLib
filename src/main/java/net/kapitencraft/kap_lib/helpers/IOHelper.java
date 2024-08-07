@@ -36,26 +36,42 @@ public class IOHelper {
     private static final String LENGTH_ID = "Length";
 
 
+    /**
+     * @return if the tag contains the given id, and it's an Integer type, and it's value is > 0
+     */
     public static boolean checkForIntAbove0(CompoundTag tag, String name) {
-        return tag.contains(name) && tag.getInt(name) > 0;
+        return tag.contains(name, 3) && tag.getInt(name) > 0;
     }
 
 
+    /**
+     * @return if the tag is null or empty
+     */
     public static boolean isTagEmpty(@Nullable CompoundTag tag) {
         return tag == null || tag.isEmpty();
     }
 
+    /**
+     * increase the given tag's float element found under name
+     * @return the new set value
+     */
     public static float increaseFloatTagValue(CompoundTag tag, String name, float f) {
         float value = tag.getFloat(name)+f;
         tag.putFloat(name, value);
         return value;
     }
 
+    /**
+     * get the data result or the defaulted if the data result is empty
+     */
     public static <T> T get(DataResult<T> result, @NotNull Supplier<T> defaulted) {
         Optional<T> optional = result.result();
         return optional.orElseGet(defaulted);
     }
 
+    /**
+     * creates or gets the given file and apply the given codec to the content or get the defaulted if
+     */
     @SuppressWarnings("all")
     public static <T> T loadFile(File file, Codec<T> codec, Supplier<T> defaulted) {
         try {
@@ -66,6 +82,9 @@ public class IOHelper {
         return defaulted.get();
     }
 
+    /**
+     * creates the given file if it doesn't exist
+     */
     @SuppressWarnings("all")
     private static void createFile(File file) {
         try {
@@ -78,14 +97,26 @@ public class IOHelper {
         }
     }
 
+    /**
+     * create a JsonReader of the given file
+     * @throws FileNotFoundException if the file doesn't exist
+     */
     private static JsonReader createReader(File file) throws FileNotFoundException {
         return new JsonReader(new FileReader(file));
     }
 
+    /**
+     * create a JsonWriter of the given file
+     * @throws FileNotFoundException if the file doesn't exist
+     */
     private static JsonWriter createWriter(File file) throws IOException {
         return new JsonWriter(new FileWriter(file));
     }
 
+    /**
+     * save the given element to the file, using the given codec
+     * <br> will try to create the file if it doesn't already exist
+     */
     @SuppressWarnings("all")
     public static <T> void saveFile(File file, Codec<T> codec, T in) {
         try {
@@ -98,12 +129,19 @@ public class IOHelper {
         }
     }
 
+    /**
+     * increases the given tag element
+     * @see IOHelper#increaseFloatTagValue(CompoundTag, String, float)
+     */
     public static int increaseIntegerTagValue(CompoundTag tag, String name, int i) {
         int value = tag.getInt(name)+i;
         tag.putInt(name, value);
         return value;
     }
 
+    /**
+     * increases the given tag element if the element's value is above 0
+     */
     public static int increaseIntOnlyAbove0(CompoundTag tag, String name, int i) {
         if (checkForIntAbove0(tag, name)) {
             return increaseIntegerTagValue(tag, name, i);
@@ -111,10 +149,16 @@ public class IOHelper {
         return tag.getInt(name);
     }
 
+    /**
+     * reduces the given int tag element by 1
+     */
     public static int reduceBy1(CompoundTag tag, String name) {
         return increaseIntOnlyAbove0(tag, name, -1);
     }
 
+    /**
+     * create a UUID -> Integer map compoundtag implementation
+     */
     public static @NotNull CompoundTag putHashMapTag(@NotNull HashMap<UUID, Integer> hashMap) {
         CompoundTag mapTag = new CompoundTag();
         List<Integer> IntArray = CollectionHelper.fromAny(hashMap.values());
@@ -124,6 +168,9 @@ public class IOHelper {
         return mapTag;
     }
 
+    /**
+     * merge the CompoundTag into the given entity
+     */
     @SuppressWarnings("ALL")
     public static void injectCompoundTag(Entity toInject, CompoundTag tag) {
         CompoundTag data = toInject.getPersistentData();
@@ -137,10 +184,16 @@ public class IOHelper {
         });
     }
 
+    /**
+     * convert a CompoundTag into a string
+     */
     public static String fromCompoundTag(CompoundTag tag) {
         return new StringTagVisitor().visit(tag);
     }
 
+    /**
+     * read a CompoundTag list from the given tag
+     */
     public static Stream<CompoundTag> readCompoundList(CompoundTag tag, String name) {
         return readList(tag, name, CompoundTag.class, Function.identity(), 10);
     }

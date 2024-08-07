@@ -6,6 +6,7 @@ import net.kapitencraft.kap_lib.client.overlay.box.InteractiveBox;
 import net.kapitencraft.kap_lib.client.overlay.holder.Overlay;
 import net.kapitencraft.kap_lib.client.widget.menu.drop_down.DropDownMenu;
 import net.kapitencraft.kap_lib.client.widget.menu.drop_down.elements.MultiElementSelectorElement;
+import net.kapitencraft.kap_lib.helpers.ClientHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -84,12 +85,10 @@ public class ChangeOverlayLocationsScreen extends MenuableScreen {
         boxes.forEach(interactiveBox -> interactiveBox.render(graphics, mouseX, mouseY));
         super.render(graphics, mouseX, mouseY, pPartialTick);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFF4F4F4F);
-        if (minecraft == null) return;
         int arrowId = boxes.stream().map(box -> box.getCursorType(mouseX, mouseY))
                 .filter(i -> i != GLFW.GLFW_ARROW_CURSOR) //ensure to only scan for non-default cursors
                 .findFirst().orElse(GLFW.GLFW_ARROW_CURSOR);
-        long windowId = minecraft.getWindow().getWindow();
-        minecraft.execute(()-> GLFW.glfwSetCursor(windowId, GLFW.glfwCreateStandardCursor(arrowId)));
+        ClientHelper.changeCursorType(arrowId);
     }
 
     @Override

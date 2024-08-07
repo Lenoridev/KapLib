@@ -2,7 +2,7 @@ package net.kapitencraft.kap_lib.helpers;
 
 import net.kapitencraft.kap_lib.collection.MapStream;
 import net.kapitencraft.kap_lib.enchantments.abstracts.ExtendedAbilityEnchantment;
-import net.kapitencraft.kap_lib.event.ModEventFactory;
+import net.kapitencraft.kap_lib.event.custom.ModEventFactory;
 import net.kapitencraft.kap_lib.item.IEventListener;
 import net.kapitencraft.kap_lib.item.bonus.IArmorBonusItem;
 import net.kapitencraft.kap_lib.item.bonus.IItemBonusItem;
@@ -19,17 +19,24 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 @Mod.EventBusSubscriber
-public class BonusHelper {
+public interface BonusHelper {
 
 
-    public static void tickEnchantments(LivingEntity living) {
+    /**
+     * @param living the target entity to tick enchantments of
+     * ticks any {@link ExtendedAbilityEnchantment} applied to any of the 6 {@link EquipmentSlot}s available
+     */
+    static void tickEnchantments(LivingEntity living) {
         doForSlot((stack, slot) -> MapStream.of(stack.getAllEnchantments())
                 .filterKeys(e -> e instanceof ExtendedAbilityEnchantment)
                 .mapKeys(ExtendedAbilityEnchantment.class::cast)
                 .forEach((enchantment, integer) -> enchantment.onTick(living, integer)), living, (stack, slot) -> stack.isEnchanted());
     }
 
-    public static List<IEventListener> getListenersFromStack(EquipmentSlot slot, ItemStack stack, LivingEntity living) {
+    /**
+     * @return all IEventListeners applied for the {@code stack} at the given {@code slot}
+     */
+    static List<IEventListener> getListenersFromStack(EquipmentSlot slot, ItemStack stack, LivingEntity living) {
         List<IEventListener> bonuses = new ArrayList<>();
         if (stack.getItem() instanceof IItemBonusItem bonusItem) {
             bonuses.add(bonusItem.getBonus());
@@ -40,6 +47,9 @@ public class BonusHelper {
         return bonuses.stream().filter(Objects::nonNull).toList();
     }
 
+    /**
+     * @return the modifiers applied to the given {@code armorItem} at the given {@code slot}
+     */
     private static List<IEventListener> getArmorBonuses(ArmorItem armorItem, LivingEntity living, EquipmentSlot slot) {
         List<IEventListener> list = new ArrayList<>();
         if (armorItem instanceof IArmorBonusItem armorBonusItem && armorItem.getEquipmentSlot() == slot) {
@@ -51,8 +61,10 @@ public class BonusHelper {
     }
 
 
-
-    private static void doForSlot(BiConsumer<ItemStack, EquipmentSlot> stackConsumer, LivingEntity living, BiPredicate<ItemStack, EquipmentSlot> usagePredicate) {
+    /**
+     * do something with each of the 6 {@link EquipmentSlot}s available on the {@link LivingEntity} given
+     */
+    static void doForSlot(BiConsumer<ItemStack, EquipmentSlot> stackConsumer, LivingEntity living, BiPredicate<ItemStack, EquipmentSlot> usagePredicate) {
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             ItemStack stack = living.getItemBySlot(slot);
             if (usagePredicate.test(stack, slot)) stackConsumer.accept(stack, slot);

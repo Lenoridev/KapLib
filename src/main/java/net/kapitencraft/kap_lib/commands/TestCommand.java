@@ -37,7 +37,7 @@ public class TestCommand {
         context.getSource().getEntityOrException()
                 .level()
                 .addParticle(
-                        new ShimmerShieldParticleOptions(1000, 50, Minecraft.getInstance().player.getId(), 5, 10, 1000, new Color(0xFFFF0000), new Color(0xFF00FF00), .01f, UUID.randomUUID()),
+                        new ShimmerShieldParticleOptions(100, 50, Minecraft.getInstance().player.getId(), 5, 10, 1000, new Color(0xFFFF0000), new Color(0xFF00FF00), .01f, UUID.randomUUID()),
                         true, 0, 0, 0, 0, 0, 0
                         );
         CommandHelper.sendSuccess(context.getSource(), "success!");

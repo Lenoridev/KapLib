@@ -47,4 +47,9 @@ public class TestScreen extends Screen {
     public void tick() {
         this.textBox.tick();
     }
+
+    @Override
+    public void onClose() {
+        this.textBox.onClose();
+    }
 }

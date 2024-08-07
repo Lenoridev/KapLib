@@ -3,10 +3,9 @@ package net.kapitencraft.kap_lib.tags;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 
-public interface DamageTypeTags {
+public interface ExtraDamageTypeTags {
     TagKey<DamageType> MAGIC = forgeKey("magic");
     TagKey<DamageType> PARTICLE_WEAPON = forgeKey("particle_weapon");
 

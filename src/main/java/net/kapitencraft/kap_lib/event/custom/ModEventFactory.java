@@ -1,8 +1,5 @@
-package net.kapitencraft.kap_lib.event;
+package net.kapitencraft.kap_lib.event.custom;
 
-import net.kapitencraft.kap_lib.event.custom.FetchItemBonusesEvent;
-import net.kapitencraft.kap_lib.event.custom.ItemStackEvent;
-import net.kapitencraft.kap_lib.event.custom.RegisterRarityEvent;
 import net.kapitencraft.kap_lib.item.IEventListener;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -34,10 +31,5 @@ public class ModEventFactory {
     public static void fetchItemBonuses(List<IEventListener> listeners, ItemStack stack, EquipmentSlot slot) {
         FetchItemBonusesEvent event = new FetchItemBonusesEvent(listeners, stack, slot);
         MinecraftForge.EVENT_BUS.post(event);
-    }
-
-    public static void onRarityRegister(List<Rarity> rarities) {
-        RegisterRarityEvent event = new RegisterRarityEvent(rarities);
-        fireModEvent(event);
     }
 }

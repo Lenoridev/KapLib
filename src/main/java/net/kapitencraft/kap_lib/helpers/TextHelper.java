@@ -198,6 +198,17 @@ public class TextHelper {
         }
     }
 
+    /**
+     * @return the index of the last matching chars between the two strings
+     */
+    public static int getMatchingAmount(String a, String b) {
+        int i = 0;
+        while (a.length() > i && b.length() > i && a.charAt(i) == b.charAt(i)) {
+            i++;
+        }
+        return i;
+    }
+
     private static final List<String> NUMBERS = List.of("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
     private static final List<String> LETTERS_SMALL = List.of("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
     private static final List<String> LETTERS_BIG = LETTERS_SMALL.stream().map(String::toUpperCase).toList();

@@ -7,7 +7,7 @@ import net.kapitencraft.kap_lib.client.LibClient;
 import net.kapitencraft.kap_lib.client.overlay.box.InteractiveBox;
 import net.kapitencraft.kap_lib.client.overlay.holder.Overlay;
 import net.kapitencraft.kap_lib.collection.MapStream;
-import net.kapitencraft.kap_lib.event.ModEventFactory;
+import net.kapitencraft.kap_lib.event.custom.ModEventFactory;
 import net.kapitencraft.kap_lib.event.custom.client.RegisterOverlaysEvent;
 import net.kapitencraft.kap_lib.helpers.ClientHelper;
 import net.kapitencraft.kap_lib.helpers.CollectionHelper;

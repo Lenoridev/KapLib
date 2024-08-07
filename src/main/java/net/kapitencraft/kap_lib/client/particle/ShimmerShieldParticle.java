@@ -4,14 +4,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.kapitencraft.kap_lib.client.LibClient;
 import net.kapitencraft.kap_lib.helpers.MathHelper;
 import net.kapitencraft.kap_lib.util.Color;
-import net.kapitencraft.kap_lib.util.ShimmerShieldManager;
 import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -58,7 +53,7 @@ public class ShimmerShieldParticle extends TextureSheetParticle {
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
+    public @NotNull ParticleRenderType getRenderType() {
         return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 
@@ -80,7 +75,7 @@ public class ShimmerShieldParticle extends TextureSheetParticle {
     }
 
     @Override
-    public AABB getBoundingBox() {
+    public @NotNull AABB getBoundingBox() {
         return this.target == null ? super.getBoundingBox() : this.target.getBoundingBox().inflate(this.target.getBbWidth() * 0.4, this.target.getBbHeight() * 0.4, this.target.getBbWidth() * 0.4);
     }
 
@@ -120,7 +115,7 @@ public class ShimmerShieldParticle extends TextureSheetParticle {
                 vector3f.add(relative.toVector3f());
             }
 
-            Color color = min.mix(max,  (Math.max(this.age - 1, 0) + pPartialTicks) / this.lifeTime);
+            Color color = max.mix(min, (Math.max(this.age - 1, 0) + pPartialTicks) / this.lifeTime);
             float f6 = getU0();
             float f7 = getU1();
             float f4 = getV0();

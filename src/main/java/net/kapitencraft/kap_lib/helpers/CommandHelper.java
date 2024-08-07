@@ -10,27 +10,33 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
 
-@Mod.EventBusSubscriber
-public class CommandHelper {
-
-    @SubscribeEvent
-    public static void registerClient(RegisterClientCommandsEvent event) {
+public interface CommandHelper {
+    /**
+     * register library commands
+     */
+    @ApiStatus.Internal
+    static void registerClient(RegisterClientCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
         OverlaysCommand.register(dispatcher);
         TestCommand.register(dispatcher);
     }
 
-    public static void sendSuccess(CommandSourceStack stack, String msg, Object... args) {
+    /**
+     * send a success message to the given {@link CommandSourceStack} automatically coloring it green
+     */
+    static void sendSuccess(CommandSourceStack stack, String msg, Object... args) {
         stack.sendSuccess(() -> Component.translatable(msg, args).withStyle(ChatFormatting.GREEN), true);
     }
 
-    public static int checkNonConsoleCommand(CommandContext<CommandSourceStack> context, BiFunction<@NotNull ServerPlayer, CommandSourceStack, Integer> function) {
+    /**
+     * check if the command was executed from the console and cancel it if so
+     */
+    static int checkNonConsoleCommand(CommandContext<CommandSourceStack> context, BiFunction<@NotNull ServerPlayer, CommandSourceStack, Integer> function) {
         CommandSourceStack stack = context.getSource();
         if (stack.getPlayer() != null) {
             return function.apply(stack.getPlayer(), stack);
@@ -39,23 +45,38 @@ public class CommandHelper {
         return 0;
     }
 
-    public static boolean isModerator(CommandSourceStack stack) {
+    /**
+     * check if the given stack has Moderator permission
+     */
+    static boolean isModerator(CommandSourceStack stack) {
         return stack.hasPermission(1);
     }
 
-    public static boolean isGameMaster(CommandSourceStack stack) {
+    /**
+     * check if the given stack has GameMaster permission
+     */
+    static boolean isGameMaster(CommandSourceStack stack) {
         return stack.hasPermission(2);
     }
 
-    public static boolean isAdmin(CommandSourceStack stack) {
+    /**
+     * check if the given stack has Admin permission
+     */
+    static boolean isAdmin(CommandSourceStack stack) {
         return stack.hasPermission(3);
     }
 
-    public static boolean isOwner(CommandSourceStack stack) {
+    /**
+     * check if the given stack has Owner permission
+     */
+    static boolean isOwner(CommandSourceStack stack) {
         return stack.hasPermission(4);
     }
 
-    public static boolean isSocialEnabled(CommandSourceStack stack) {
+    /**
+     * check if social commands are enabled
+     */
+    static boolean isSocialEnabled(CommandSourceStack stack) {
         return ServerModConfig.areSocialCommandsEnabled();
     }
 }

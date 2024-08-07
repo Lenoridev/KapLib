@@ -2,6 +2,7 @@ package net.kapitencraft.kap_lib.helpers;
 
 import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.registry.ModAttributes;
+import net.kapitencraft.kap_lib.util.Color;
 import net.kapitencraft.kap_lib.util.Reference;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.FastColor;
@@ -36,55 +37,82 @@ public interface MathHelper {
 
     double DAMAGE_CALCULATION_VALUE = 50;
 
-    static Vector4f getColor(int pColor) {
-        float f3 = (float) FastColor.ARGB32.alpha(pColor) / 255.0F;
-        float f = (float)FastColor.ARGB32.red(pColor) / 255.0F;
-        float f1 = (float)FastColor.ARGB32.green(pColor) / 255.0F;
-        float f2 = (float)FastColor.ARGB32.blue(pColor) / 255.0F;
-        return new Vector4f(f, f1, f2, f3);
-    }
-
+    /**
+     * merge the given r, g, b and a values into a packed integer
+     */
     static int RGBAtoInt(int r, int g, int b, int a) {
         int returnable = (a << 8) + r;
         returnable = (returnable << 8) + g;
         return (returnable << 8) + b;
     }
 
+    /**
+     * round the given number to the given number of decimal digits
+     * @param no the given number
+     * @param num the number of decimal digits
+     * @return the rounded number
+     */
     static double round(double no, int num) {
         return Math.floor(no * Math.pow(10, num)) / (Math.pow(10, num));
     }
 
+    /**
+     * default rounding, using 2 decimal digits
+     * @see MathHelper#round(double, int) 
+     */
     static double defRound(double no) {
         return round(no, 2);
     }
 
 
+    /**
+     * updated damage calculation:
+     */
     static float calculateDamage(float damage, double armorValue, double armorToughnessValue) {
         double f = DAMAGE_CALCULATION_VALUE - armorToughnessValue / 4.0F;
         double defencePercentage = armorValue / (armorValue + f);
         return (float) (damage * (1f - defencePercentage));
     }
 
+    /**
+     * gives the 3d location for the given arm and entity
+     */
     @Contract("_, null -> fail")
     static Vec3 getHandHoldingItemAngle(HumanoidArm arm, Entity entity) {
         return entity.position().add(entity.calculateViewVector(0.0F, entity.getYRot() + (float)(arm == HumanoidArm.RIGHT ? 80 : -80)).scale(0.5D));
     }
 
+    /**
+     * @param source the source Vec to rotate
+     * @param pivot the rotation pivot
+     * @param angle the angle to rotate by
+     * @return the rotated relative angle
+     */
     @Contract("_, null, _ -> fail; null, _, _ -> fail")
     static Vec3 rotateHorizontalVec(Vec3 source, Vec3 pivot, int angle) {
-        double x = (pivot.x - source.x) * Math.cos(angle) - (pivot.y - source.y) * Math.sin(angle) + source.x;
-        double z = (pivot.x - source.x) * Math.sin(angle) + (pivot.y - source.y) * Math.cos(angle) + source.y;
+        double x = (pivot.x - source.x) * Mth.cos(angle) - (pivot.y - source.y) * Mth.sin(angle) + source.x;
+        double z = (pivot.x - source.x) * Mth.sin(angle) + (pivot.y - source.y) * Mth.cos(angle) + source.y;
         return new Vec3(x, 0, z);
     }
 
+    /**
+     * @return if the given {@code val} value is between {@code start} and {@code end}
+     */
     static boolean isBetween(int start, int end, double val) {
         return Mth.clamp(val, start, end) == val;
     }
 
+    /**
+     * @return if the given values are between the given start and end values
+     * @see MathHelper#isBetween(int, int, double) isBetween
+     */
     static boolean is2dBetween(double xVal, double yVal, int xStart, int yStart, int xEnd, int yEnd) {
         return isBetween(xStart, xEnd, xVal) && isBetween(yStart, yEnd, yVal);
     }
 
+    /**
+     * @return the biggest integer from the map
+     */
     static int getLargest(@NotNull Collection<Integer> floats) {
         int largest = 0;
         for (int f : floats) {
@@ -93,6 +121,9 @@ public interface MathHelper {
         return largest;
     }
 
+    /**
+     * checks any string if it's a number between {@code min} and {@code max}
+     */
     @Contract("_, _ -> new")
     static Predicate<String> checkForInteger(int min, int max) {
         return s -> {
@@ -105,35 +136,9 @@ public interface MathHelper {
         };
     }
 
-    @Contract("null, _ -> fail")
-    static AABB getMineBox(LivingEntity entity, int size) {
-        AABB aabb = new AABB(-size, -size, -size, size, size, size);//creating a normal box
-        switch (entity.getDirection().getAxis()) { //set the length of the rotation's Axis to 0
-            case X -> {
-                aabb.setMinX(0);
-                aabb.setMaxX(0);
-            }
-            case Y -> {
-                aabb.setMinY(0);
-                aabb.setMaxY(0);
-            }
-            case Z -> {
-                aabb.setMinZ(0);
-                aabb.setMaxZ(0);
-            }
-        }
-        return aabb; //return the aabb
-    }
-
-    //the code you need
-    static void useBox(LivingEntity living, int size, BlockPos minePos) {
-        AABB mineBox = getMineBox(living, size);
-        mineBox = mineBox.move(minePos);
-        BlockPos.betweenClosedStream(mineBox).forEach(pos -> {
-            //what you want to do with every block-pos
-        });
-    }
-
+    /**
+     * @return a list of entities that surround the given source in a {@code range} radius and is an instance of {@code tClass}
+     */
     static <T extends Entity> List<T> getEntitiesAround(Class<T> tClass, Entity source, double range) {
         Level level = source.level();
         return getEntitiesAround(tClass, level, source.getBoundingBox(), range);
@@ -162,6 +167,9 @@ public interface MathHelper {
     }
 
 
+    /**
+     * @return a list of locations in the line of sight ot the given entity
+     */
     @Contract("null, _, _ -> fail; _, _, _ -> new")
     static ArrayList<Vec3> lineOfSight(Entity entity, double range, double scaling) {
         Vec3 viewVec = entity.calculateViewVector(entity.getXRot(), entity.getYRot());
@@ -176,6 +184,9 @@ public interface MathHelper {
         return list;
     }
 
+    /**
+     * @return a list of locations in the line of sight of the position and rotation
+     */
     static ArrayList<Vec3> lineOfSight(Vec2 vec, Vec3 pos, double range, double scaling) {
         ArrayList<Vec3> line = new ArrayList<>();
         Vec3 vec3;
@@ -186,6 +197,9 @@ public interface MathHelper {
         return line;
     }
 
+    /**
+     * count all elements inside the collection
+     */
     static int count(@NotNull Collection<Integer> collection) {
         int count = 0;
         for (Integer integer : collection) {
@@ -194,6 +208,9 @@ public interface MathHelper {
         return count;
     }
 
+    /**
+     * get all positions between the 2 given block positions
+     */
     static List<BlockPos> makeLine(BlockPos a, BlockPos b, LineSize size) {
         List<BlockPos> list = new ArrayList<>();
         BlockPos diff = b.subtract(a);
@@ -206,16 +223,9 @@ public interface MathHelper {
         return list;
     }
 
-    static float makePercentage(int value, int maxValue) {
-        return value * 1f / maxValue;
-    }
-
-    static void forCube(BlockPos cube, Consumer<BlockPos> consumer) {
-        MiscHelper.repeat(cube.getX(), integer -> MiscHelper.repeat(cube.getY(), integer1 -> MiscHelper.repeat(cube.getZ(), integer2 -> {
-            consumer.accept(new BlockPos(integer, integer1, integer2));
-        })));
-    }
-
+    /**
+     * @return get the position relative multiplied by {@code t}
+     */
     private static BlockPos makeLinePos(double t, BlockPos a, BlockPos diff) {
         return new BlockPos((int) (a.getX() + diff.getX() * t), (int) (a.getY() + diff.getY() * t), (int) (a.getZ() + diff.getZ() * t));
     }
@@ -225,56 +235,92 @@ public interface MathHelper {
         THICK
     }
 
+    /**
+     * moves the given {@code source} vector towards {@code target}
+     */
     static Vec3 moveTowards(Vec3 source, Vec3 target, double range, boolean percentage) {
         Vec3 change = source.subtract(target);
         double dist = source.distanceTo(target);
         return percentage ? clampLength(change, dist * range) : clampLength(change, range);
     }
 
+    /**
+     * picks a random element from the list
+     */
     @Nullable
     static <T> T pickRandom(List<T> list) {
         return pickRandom(list, KapLibMod.RANDOM_SOURCE);
     }
 
+    /**
+     * picks a random element from the list using the given {@link RandomSource}
+     */
     @Contract("null, _ -> fail; _, null -> fail")
     static <T> T pickRandom(List<T> list, RandomSource source) {
         return list.isEmpty() ? null : list.get(Mth.nextInt(source, 0, list.size() - 1));
     }
 
-    static boolean chance(double chance, @Nullable Entity entity) {
+    /**
+     * @return whether the chance fired, checking for the given entities Luck value, if present
+     */
+    static boolean chance(double baseChance, @Nullable Entity entity) {
         if (entity instanceof LivingEntity living) {
-            return chance(chance, living);
+            return chance(baseChance, living);
         } else {
-            return chance(chance, null);
+            return chance(baseChance, null);
         }
     }
 
+    /**
+     * @return whether the chance fired, checking for the {@link LivingEntity }
+     */
     static boolean chance(double chance, @Nullable LivingEntity living) {
         return Math.random() <= chance * (living != null ? (1 + living.getAttributeValue(Attributes.LUCK) / 100) : 1);
     }
 
+    /**
+     * gets the cooldown time for the given {@link LivingEntity} and the defaultTime
+     */
     static int cooldown(LivingEntity living, int defaultTime) {
         return (int) (defaultTime * (1 - living.getAttributeValue(ModAttributes.COOLDOWN_REDUCTION.get()) / 100));
     }
 
+    /**
+     * gets all entities inside the given AABB source of the given class inside the given level
+     */
     static <T extends Entity> List<T> getEntitiesAround(Class<T> tClass, Level level, AABB source, double range) {
         return level.getEntitiesOfClass(tClass, source.inflate(range));
     }
 
+    /**
+     * @return the closest entity of the given type, or null if none could be found within the given range
+     */
     static <T extends Entity> @Nullable T getClosestEntity(Class<T> tClass, Entity source, double range) {
         List<T> entities = getEntitiesAround(tClass, source, range).stream().filter(t -> t.is(source)).sorted(Comparator.comparingDouble(value -> value.distanceTo(source))).toList();
         if (entities.isEmpty()) return null;
         return entities.get(0);
     }
 
+    /**
+     * gets the closest living entity
+     * @see MathHelper#getClosestEntity(Class, Entity, double)
+     */
     static LivingEntity getClosestLiving(Entity source, double range) {
         return getClosestEntity(LivingEntity.class, source, range);
     }
+
+    /**
+     * get Living entities around the given source
+     * @see MathHelper#getEntitiesAround(Class, Entity, double) 
+     */
 
     static List<LivingEntity> getLivingAround(Entity source, double range) {
         return getEntitiesAround(LivingEntity.class, source, range);
     }
 
+    /**
+     * calculates the view vector of the given x and y rotation
+     */
     static Vec3 calculateViewVector(float horizontalHeightXAxis, float verticalYAxis) {
         float f = horizontalHeightXAxis * ((float)Math.PI / 180F);
         float f1 = -verticalYAxis * ((float)Math.PI / 180F);
@@ -285,6 +331,9 @@ public interface MathHelper {
         return new Vec3(f3 * f4, -f5, f2 * f4);
     }
 
+    /**
+     * gets a list of any entity of the given class
+     */
     static <T extends Entity> List<T> getAllEntitiesInsideCone(Class<T> tClass, float span, double range, Vec3 sourcePos, Vec2 sourceRot, Level level) {
         double halfSpan = span / 2;
         double incremental = Math.sin(halfSpan) * 0.1;

@@ -46,7 +46,7 @@ public class Color {
 
 
     public Color mix(Color other, @Range(from = 0, to = 1) float percentage) {
-        return other.mul(1 - percentage).add(other.mul(percentage));
+        return other.mul(1 - percentage).add(this.mul(percentage));
     }
 
     public void write(FriendlyByteBuf pBuffer) {

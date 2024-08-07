@@ -175,6 +175,9 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
+java {
+    withSourcesJar()
+}
 
 mixin {
     //MixinGradle Settings

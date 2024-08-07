@@ -2,6 +2,7 @@ package net.kapitencraft.kap_lib;
 
 import com.mojang.logging.LogUtils;
 import net.kapitencraft.kap_lib.config.ClientModConfig;
+import net.kapitencraft.kap_lib.helpers.CommandHelper;
 import net.kapitencraft.kap_lib.registry.ModAttributes;
 import net.kapitencraft.kap_lib.registry.ModParticleTypes;
 import net.kapitencraft.kap_lib.registry.custom.ModRegistryBuilders;
@@ -10,6 +11,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -46,6 +48,8 @@ public class KapLibMod
         ModParticleTypes.REGISTRY.register(modEventBus);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientModConfig.SPEC);
+
+        MinecraftForge.EVENT_BUS.addListener(CommandHelper::registerClient);
     }
 
     public static String doubleFormat(double d) {

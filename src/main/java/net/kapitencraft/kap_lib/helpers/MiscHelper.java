@@ -4,7 +4,8 @@ import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.client.font.effect.EffectsStyle;
 import net.kapitencraft.kap_lib.client.font.effect.GlyphEffect;
 import net.kapitencraft.kap_lib.client.particle.DamageIndicatorParticleOptions;
-import net.kapitencraft.kap_lib.tags.DamageTypeTags;
+import net.kapitencraft.kap_lib.tags.ExtraDamageTypeTags;
+import net.kapitencraft.kap_lib.util.Color;
 import net.kapitencraft.kap_lib.util.ExtraRarities;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementProgress;
@@ -82,10 +83,10 @@ public class MiscHelper {
     }
 
     /**
-     * need in order for the Mixin invoker on serverside not to cry
+     * needed in order for the Mixin invoker on serverside not to cry
      */
     public static void sendManaBoostParticles(Entity target, RandomSource random, Vec3 delta) {
-        ClientHelper.sendManaBoostParticles(target, random, delta);
+        ClientHelper.sendElytraBoostParticles(target, random, delta, new Color(0, 0, 1, 1), new Color(.5f, 0, .5f, 1));
     }
 
     @Contract("null -> fail")
@@ -361,7 +362,7 @@ public class MiscHelper {
      */
     @Contract("null -> fail")
     public static DamageType getDamageType(DamageSource source) {
-        if (source.is(DamageTypeTags.MAGIC)) {
+        if (source.is(ExtraDamageTypeTags.MAGIC)) {
             return DamageType.MAGIC;
         }
         if (source.getDirectEntity() == source.getEntity()) {
