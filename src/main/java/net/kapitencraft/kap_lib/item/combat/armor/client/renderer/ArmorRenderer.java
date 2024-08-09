@@ -1,6 +1,6 @@
-package net.kapitencraft.kap_lib.client.renderer;
+package net.kapitencraft.kap_lib.item.combat.armor.client.renderer;
 
-import net.kapitencraft.kap_lib.client.model.ArmorModel;
+import net.kapitencraft.kap_lib.item.combat.armor.client.model.ArmorModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.world.entity.EquipmentSlot;
