@@ -1,3 +1,0 @@
-added fishingRod parameter to ModifyFishingHookStatesEvent;
-added string serializer system for data-gen lambda;
-fishing rods no longer work when not meeting requirements

@@ -2,9 +2,9 @@ package net.kapitencraft.kap_lib;
 
 import com.mojang.logging.LogUtils;
 import net.kapitencraft.kap_lib.config.ClientModConfig;
+import net.kapitencraft.kap_lib.config.ServerModConfig;
 import net.kapitencraft.kap_lib.helpers.CommandHelper;
 import net.kapitencraft.kap_lib.registry.ModAttributes;
-import net.kapitencraft.kap_lib.registry.ModItems;
 import net.kapitencraft.kap_lib.registry.ModParticleTypes;
 import net.kapitencraft.kap_lib.registry.custom.ModRegistryBuilders;
 import net.kapitencraft.kap_lib.registry.custom.ModRequirementTypes;
@@ -47,9 +47,9 @@ public class KapLibMod
         ModRequirementTypes.REGISTRY.register(modEventBus);
         ModAttributes.REGISTRY.register(modEventBus);
         ModParticleTypes.REGISTRY.register(modEventBus);
-        ModItems.REGISTRY.register(modEventBus);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientModConfig.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ServerModConfig.SPEC);
 
         MinecraftForge.EVENT_BUS.addListener(CommandHelper::registerClient);
     }
