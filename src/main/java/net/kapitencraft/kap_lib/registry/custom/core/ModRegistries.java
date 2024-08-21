@@ -1,4 +1,4 @@
-package net.kapitencraft.kap_lib.registry.custom;
+package net.kapitencraft.kap_lib.registry.custom.core;
 
 import net.kapitencraft.kap_lib.io.network.request.IRequestable;
 import net.kapitencraft.kap_lib.io.serialization.DataGenSerializer;

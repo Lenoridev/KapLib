@@ -6,7 +6,7 @@ import net.kapitencraft.kap_lib.config.ServerModConfig;
 import net.kapitencraft.kap_lib.helpers.CommandHelper;
 import net.kapitencraft.kap_lib.registry.ModAttributes;
 import net.kapitencraft.kap_lib.registry.ModParticleTypes;
-import net.kapitencraft.kap_lib.registry.custom.ModRegistryBuilders;
+import net.kapitencraft.kap_lib.registry.custom.core.ModRegistryBuilders;
 import net.kapitencraft.kap_lib.registry.custom.ModRequirementTypes;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;

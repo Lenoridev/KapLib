@@ -2,6 +2,7 @@ package net.kapitencraft.kap_lib.registry.custom;
 
 import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.io.serialization.DataGenSerializer;
+import net.kapitencraft.kap_lib.registry.custom.core.ModRegistryKeys;
 import net.kapitencraft.kap_lib.requirements.type.DimensionReqCondition;
 import net.kapitencraft.kap_lib.requirements.type.StatReqCondition;
 import net.kapitencraft.kap_lib.requirements.type.abstracts.ReqCondition;

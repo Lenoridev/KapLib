@@ -2,7 +2,7 @@ package net.kapitencraft.kap_lib.io.network.request;
 
 import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.Markers;
-import net.kapitencraft.kap_lib.registry.custom.ModRegistries;
+import net.kapitencraft.kap_lib.registry.custom.core.ModRegistries;
 import org.slf4j.Marker;
 
 import java.util.HashMap;

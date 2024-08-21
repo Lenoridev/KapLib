@@ -7,6 +7,7 @@ import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.Markers;
 import net.kapitencraft.kap_lib.collection.MapStream;
 import net.kapitencraft.kap_lib.event.custom.RegisterRequirementTypesEvent;
+import net.kapitencraft.kap_lib.io.JsonHelper;
 import net.kapitencraft.kap_lib.requirements.type.abstracts.ReqCondition;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -18,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeFriendlyByteBuf;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Function;
@@ -26,8 +28,6 @@ import java.util.stream.Collectors;
 public class RequirementManager extends SimpleJsonResourceReloadListener {
     public static RequirementManager instance;
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
     //sync
     private final Map<String, Element<?>> elements = new HashMap<>();
     //don't sync
@@ -35,12 +35,12 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
     private Map<String, RequirementType<?>> typesForNames;
 
     public RequirementManager() {
-        super(GSON, "requirements");
+        super(JsonHelper.GSON, "requirements");
         registerTypes();
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
+    protected void apply(@NotNull Map<ResourceLocation, JsonElement> pObject, @NotNull ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         MapStream.of(pObject)
                 .mapKeys(ResourceLocation::getPath)
                 .mapKeys(s -> s.replace(".json", ""))
