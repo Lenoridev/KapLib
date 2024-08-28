@@ -6,6 +6,7 @@ import net.kapitencraft.kap_lib.helpers.MathHelper;
 import net.kapitencraft.kap_lib.helpers.MiscHelper;
 import net.kapitencraft.kap_lib.io.network.ModMessages;
 import net.kapitencraft.kap_lib.io.network.S2C.SyncRequirementsPacket;
+import net.kapitencraft.kap_lib.item.bonus.BonusManager;
 import net.kapitencraft.kap_lib.registry.ModAttributes;
 import net.kapitencraft.kap_lib.requirements.RequirementManager;
 import net.kapitencraft.kap_lib.requirements.RequirementType;
@@ -54,6 +55,7 @@ public class Events {
     @SubscribeEvent
     public static void addRequirementListener(AddReloadListenerEvent event) {
         event.addListener(RequirementManager.instance = new RequirementManager());
+        event.addListener(BonusManager.instance = new BonusManager(event.getRegistryAccess()));
     }
 
     @SubscribeEvent

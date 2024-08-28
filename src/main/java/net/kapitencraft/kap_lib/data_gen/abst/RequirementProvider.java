@@ -1,4 +1,4 @@
-package net.kapitencraft.kap_lib.data_gen;
+package net.kapitencraft.kap_lib.data_gen.abst;
 
 import com.google.gson.JsonObject;
 import net.kapitencraft.kap_lib.KapLibMod;
@@ -52,7 +52,7 @@ public abstract class RequirementProvider<T> implements DataProvider {
                 KapLibMod.LOGGER.warn(Markers.REQUIREMENTS_MANAGER, "could not find element {} in registry '{}'; skipping!", t.getClass().getCanonicalName(), this.type.getReg().getRegistryName());
                 return;
             }
-            json.add(elementId.toString(), condition.saveToJson());
+            json.add(elementId.toString(), condition.toJson());
         });
 
         return DataProvider.saveStable(cache, json, target);

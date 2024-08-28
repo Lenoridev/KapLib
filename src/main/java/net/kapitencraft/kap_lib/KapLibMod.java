@@ -6,6 +6,7 @@ import net.kapitencraft.kap_lib.config.ServerModConfig;
 import net.kapitencraft.kap_lib.helpers.CommandHelper;
 import net.kapitencraft.kap_lib.registry.ModAttributes;
 import net.kapitencraft.kap_lib.registry.ModParticleTypes;
+import net.kapitencraft.kap_lib.registry.custom.ModSetBonusTypes;
 import net.kapitencraft.kap_lib.registry.custom.core.ModRegistryBuilders;
 import net.kapitencraft.kap_lib.registry.custom.ModRequirementTypes;
 import net.minecraft.core.Registry;
@@ -45,6 +46,7 @@ public class KapLibMod
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ModRequirementTypes.REGISTRY.register(modEventBus);
+        ModSetBonusTypes.REGISTRY.register(modEventBus);
         ModAttributes.REGISTRY.register(modEventBus);
         ModParticleTypes.REGISTRY.register(modEventBus);
 
@@ -72,6 +74,7 @@ public class KapLibMod
         public static void registerRegistries(NewRegistryEvent event) {
             event.create(ModRegistryBuilders.REQUESTABLES_BUILDER);
             event.create(ModRegistryBuilders.REQUIREMENTS_BUILDER);
+            event.create(ModRegistryBuilders.SET_BONUSES);
         }
     }
 }

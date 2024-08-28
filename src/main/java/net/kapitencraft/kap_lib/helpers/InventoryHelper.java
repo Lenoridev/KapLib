@@ -1,6 +1,7 @@
 package net.kapitencraft.kap_lib.helpers;
 
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
@@ -30,6 +31,10 @@ public interface InventoryHelper {
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             consumer.accept(inventory.getItem(i));
         }
+    }
+
+    static Map<EquipmentSlot, ItemStack> equipment(LivingEntity living) {
+        return Arrays.stream(EquipmentSlot.values()).collect(CollectorHelper.createMap(living::getItemBySlot));
     }
 
     /**

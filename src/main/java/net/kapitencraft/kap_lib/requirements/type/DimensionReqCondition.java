@@ -42,7 +42,7 @@ public class DimensionReqCondition extends ReqCondition<DimensionReqCondition> {
     }
 
     @Override
-    protected void additionalToNetwork(FriendlyByteBuf buf) {
+    public void additionalToNetwork(FriendlyByteBuf buf) {
         buf.writeCollection(dimensions, FriendlyByteBuf::writeResourceKey);
         buf.writeBoolean(this.inverted);
     }

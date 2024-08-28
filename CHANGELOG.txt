@@ -1,0 +1,3 @@
+fixed <V,K>IOHelper#writeMap(Map<V,K>, Function<K, JsonElement>, Function<V, JsonElement>) using Function<K, JsonElement> as value mapper
+
+added JsonElement -> K; JsonElement -> V Map reader

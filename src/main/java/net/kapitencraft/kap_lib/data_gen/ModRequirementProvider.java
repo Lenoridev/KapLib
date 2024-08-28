@@ -1,6 +1,7 @@
 package net.kapitencraft.kap_lib.data_gen;
 
 import net.kapitencraft.kap_lib.KapLibMod;
+import net.kapitencraft.kap_lib.data_gen.abst.RequirementProvider;
 import net.kapitencraft.kap_lib.requirements.RequirementType;
 import net.kapitencraft.kap_lib.requirements.type.DimensionReqCondition;
 import net.kapitencraft.kap_lib.requirements.type.StatReqCondition;

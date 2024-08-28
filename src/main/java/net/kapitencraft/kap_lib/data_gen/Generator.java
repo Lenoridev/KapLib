@@ -14,5 +14,6 @@ public class Generator {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
         generator.addProvider(true, new ModRequirementProvider(output));
+        generator.addProvider(true, new ModBonusProvider(output));
     }
 }

@@ -107,7 +107,7 @@ public class StatReqCondition extends CountCondition<StatReqCondition> {
     }
 
     @Override
-    protected void additionalToNetwork(FriendlyByteBuf buf) {
+    public void additionalToNetwork(FriendlyByteBuf buf) {
         buf.writeUtf(getStatSerializedName(this.stat));
         buf.writeInt(this.minLevel);
     }

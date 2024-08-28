@@ -311,12 +311,12 @@ public class IOHelper {
      * @return an JsonArray containing each entry of the map
      * @see IOHelper#readMap(JsonArray, BiFunction, BiFunction)
      */
-    public static <K, V> JsonArray writeMap(Map<K, V> map, Function<K, JsonElement> keyMapper, Function<K, JsonElement> valueMapper) {
+    public static <K, V> JsonArray writeMap(Map<K, V> map, Function<K, JsonElement> keyMapper, Function<V, JsonElement> valueMapper) {
         JsonArray array = new JsonArray(map.size());
         map.forEach((k, v) -> {
             JsonObject object = new JsonObject();
             object.add("key", keyMapper.apply(k));
-            object.add("value", valueMapper.apply(k));
+            object.add("value", valueMapper.apply(v));
         });
         return array;
     }
@@ -332,6 +332,10 @@ public class IOHelper {
         JsonHelper.castToObjects(array)
                 .forEach(object -> map.put(keyExtractor.apply(object, "key"), valueExtractor.apply(object, "value")));
         return MapStream.of(map);
+    }
+
+    public static <K, V> MapStream<K, V> readMap(JsonArray array, Function<JsonElement, K> keyMapper, Function<JsonElement, V> valueMapper) {
+        return readMap(array, (object, string) -> keyMapper.apply(object.get(string)), (object, string) -> valueMapper.apply(object.get(string)));
     }
 
 

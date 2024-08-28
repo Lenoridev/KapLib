@@ -7,6 +7,7 @@ import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.Markers;
 import net.kapitencraft.kap_lib.collection.MapStream;
 import net.kapitencraft.kap_lib.event.custom.RegisterRequirementTypesEvent;
+import net.kapitencraft.kap_lib.helpers.CollectorHelper;
 import net.kapitencraft.kap_lib.io.JsonHelper;
 import net.kapitencraft.kap_lib.requirements.type.abstracts.ReqCondition;
 import net.minecraft.network.FriendlyByteBuf;
@@ -22,8 +23,6 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class RequirementManager extends SimpleJsonResourceReloadListener {
     public static RequirementManager instance;
@@ -40,7 +39,7 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
     }
 
     @Override
-    protected void apply(@NotNull Map<ResourceLocation, JsonElement> pObject, @NotNull ResourceManager pResourceManager, ProfilerFiller pProfiler) {
+    protected void apply(@NotNull Map<ResourceLocation, JsonElement> pObject, @NotNull ResourceManager pResourceManager, @NotNull ProfilerFiller pProfiler) {
         MapStream.of(pObject)
                 .mapKeys(ResourceLocation::getPath)
                 .mapKeys(s -> s.replace(".json", ""))
@@ -74,7 +73,7 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
         this.types.add(RequirementType.ITEM);
         this.types.add(RequirementType.ENCHANTMENT);
         MinecraftForge.EVENT_BUS.post(new RegisterRequirementTypesEvent(this.types::add));
-        typesForNames = this.types.stream().collect(Collectors.toMap(RequirementType::getName, Function.identity()));
+        typesForNames = this.types.stream().collect(CollectorHelper.createMapForKeys(RequirementType::getName));
     }
 
     public void toNetwork(FriendlyByteBuf buf) {
@@ -114,6 +113,7 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
         }
 
         private void addElement(T value, ReqCondition<?> condition) {
+            if (condition == null) throw new IllegalStateException("empty condition detected!");
             this.requirements.put(value, condition);
         }
 
@@ -129,7 +129,7 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
     private <T> Element<T> fromNetwork(FriendlyByteBuf buf) {
         RequirementType<T> type = (RequirementType<T>) typesForNames.get(buf.readUtf());
         Element<T> element = new Element<>(type);
-        Map<T, Collection<ReqCondition<?>>> map = buf.readMap(
+        Map<T, List<ReqCondition<?>>> map = buf.readMap(
                 IForgeFriendlyByteBuf::readRegistryId,
                 buf1 -> buf1.readList(ReqCondition::fromNetwork)
         );
