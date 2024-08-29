@@ -47,9 +47,9 @@ public abstract class RequirementProvider<T> implements DataProvider {
         JsonObject json = new JsonObject();
 
         this.requirements.forEach((t, condition) -> {
-            ResourceLocation elementId = this.type.getReg().getKey(t);
+            ResourceLocation elementId = this.type.getId(t);
             if (elementId == null) {
-                KapLibMod.LOGGER.warn(Markers.REQUIREMENTS_MANAGER, "could not find element {} in registry '{}'; skipping!", t.getClass().getCanonicalName(), this.type.getReg().getRegistryName());
+                KapLibMod.LOGGER.warn(Markers.REQUIREMENTS_MANAGER, "could not find element {} in requirement type '{}'; skipping!", t.getClass().getCanonicalName(), this.type.getName());
                 return;
             }
             json.add(elementId.toString(), condition.toJson());

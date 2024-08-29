@@ -15,6 +15,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -23,6 +24,7 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -67,6 +69,11 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
         } catch (Exception e) {
             KapLibMod.LOGGER.warn("error loading item bonus: {}", e.getMessage());
         }
+    }
+
+    public static List<Component> getBonusDisplay(ItemStack stack, Player player) {
+        List<Bonus<?>> available = instance.getAllBonuses(player, true);
+        available.forEach();
     }
 
     private static DataGenSerializer<? extends Bonus<?>> readFromString(String string) {
@@ -163,7 +170,7 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
         }
     }
 
-    private static class BonusElement {
+    public static class BonusElement {
         private final boolean hidden;
         private final Bonus<?> bonus;
         private final String translationKey;

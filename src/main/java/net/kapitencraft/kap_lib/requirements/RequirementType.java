@@ -1,6 +1,6 @@
 package net.kapitencraft.kap_lib.requirements;
 
-import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -18,11 +18,15 @@ public class RequirementType<T> {
         this.registry = registry;
     }
 
-    public String getName() {
-        return name;
+    public ResourceLocation getId(T value) {
+        return this.registry.getKey(value);
     }
 
-    public IForgeRegistry<T> getReg() {
-        return registry;
+    public T getById(ResourceLocation location) {
+        return this.registry.getValue(location);
+    }
+
+    public String getName() {
+        return name;
     }
 }

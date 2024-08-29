@@ -72,6 +72,7 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
     private void registerTypes() {
         this.types.add(RequirementType.ITEM);
         this.types.add(RequirementType.ENCHANTMENT);
+        this.types.add(BonusRequirementType.INSTANCE);
         MinecraftForge.EVENT_BUS.post(new RegisterRequirementTypesEvent(this.types::add));
         typesForNames = this.types.stream().collect(CollectorHelper.createMapForKeys(RequirementType::getName));
     }
@@ -102,7 +103,7 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
                 JsonObject object = jsonElement.getAsJsonObject();
                 MapStream.of(object.asMap())
                         .mapKeys(ResourceLocation::new)
-                        .mapKeys(this.type.getReg()::getValue)
+                        .mapKeys(this.type::getById)
                         .filterKeys(Objects::nonNull)
                         .mapValues(JsonElement::getAsJsonObject)
                         .mapValues(ReqCondition::readFromJson)
@@ -120,7 +121,7 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
         private void toNetwork(FriendlyByteBuf buf) {
             buf.writeUtf(this.type.getName());
                 buf.writeMap(requirements.asMap(),
-                    (buf1, t) -> buf1.writeRegistryId(this.type.getReg(), t),
+                    (buf1, t) -> buf1.writeResourceLocation(this.type.getId(t)),
                     (buf1, reqConditions) -> buf1.writeCollection(reqConditions, (byteBuf, reqCondition) -> reqCondition.toNetwork(byteBuf))
             );
         }
@@ -130,7 +131,7 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
         RequirementType<T> type = (RequirementType<T>) typesForNames.get(buf.readUtf());
         Element<T> element = new Element<>(type);
         Map<T, List<ReqCondition<?>>> map = buf.readMap(
-                IForgeFriendlyByteBuf::readRegistryId,
+                buf1 -> type.getById(buf1.readResourceLocation()),
                 buf1 -> buf1.readList(ReqCondition::fromNetwork)
         );
         map.forEach((t, reqConditions) -> reqConditions.forEach(reqCondition -> element.addElement(t, reqCondition)));
