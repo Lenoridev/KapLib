@@ -15,7 +15,7 @@ import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.collection.MapStream;
 import net.kapitencraft.kap_lib.io.JsonHelper;
 import net.kapitencraft.kap_lib.io.StringSegment;
-import net.kapitencraft.kap_lib.stream.TriConsumer;
+import net.kapitencraft.kap_lib.stream.Consumers;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -352,8 +352,8 @@ public class IOHelper {
             return new TagBuilder();
         }
 
-        public <T> TagBuilder withArg(String name, T value, TriConsumer<CompoundTag, String, T> consumer) {
-            consumer.accept(tag, name, value);
+        public <T> TagBuilder withArg(String name, T value, Consumers.C3<CompoundTag, String, T> consumer) {
+            consumer.apply(tag, name, value);
             return this;
         }
 

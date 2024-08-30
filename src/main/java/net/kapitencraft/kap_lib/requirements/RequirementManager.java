@@ -16,6 +16,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeFriendlyByteBuf;
@@ -61,8 +62,8 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
         return element != null ? element.requirements.get(t) : List.of();
     }
 
-    public <T> boolean meetsRequirements(RequirementType<T> type, T value, Player player) {
-        return getReqs(type, value).stream().allMatch(reqCondition -> reqCondition.matches(player));
+    public <T> boolean meetsRequirements(RequirementType<T> type, T value, LivingEntity living) {
+        return getReqs(type, value).stream().allMatch(reqCondition -> reqCondition.matches(living));
     }
 
     public static boolean meetsRequirementsFromEvent(PlayerEvent event, EquipmentSlot slot) {

@@ -21,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
@@ -130,6 +131,9 @@ public class MiscHelper {
 
     }
 
+    public static boolean is(Item item, TagKey<Item> tagKey) {
+        return item.builtInRegistryHolder().is(tagKey);
+    }
 
     /**
      * method to get the enchantment level of a stack and execute the consumer when above 0

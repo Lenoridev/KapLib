@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -52,8 +53,8 @@ public class DimensionReqCondition extends ReqCondition<DimensionReqCondition> {
     }
 
     @Override
-    public boolean matches(Player player) {
-        return inverted != dimensions.contains(player.level().dimension());
+    public boolean matches(LivingEntity entity) {
+        return inverted != dimensions.contains(entity.level().dimension());
     }
 
     @Override

@@ -9,7 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -47,7 +47,7 @@ public abstract class ReqCondition<T extends ReqCondition<T>> implements IDataGe
         return object;
     }
 
-    public abstract boolean matches(Player player);
+    public abstract boolean matches(LivingEntity player);
 
     public abstract DataGenSerializer<T> getSerializer();
 

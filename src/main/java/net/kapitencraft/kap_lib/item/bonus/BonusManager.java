@@ -1,21 +1,27 @@
 package net.kapitencraft.kap_lib.item.bonus;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import net.kapitencraft.kap_lib.KapLibMod;
+import net.kapitencraft.kap_lib.collection.DoubleMap;
+import net.kapitencraft.kap_lib.collection.MapStream;
+import net.kapitencraft.kap_lib.helpers.ClientHelper;
 import net.kapitencraft.kap_lib.helpers.InventoryHelper;
 import net.kapitencraft.kap_lib.io.JsonHelper;
 import net.kapitencraft.kap_lib.io.serialization.DataGenSerializer;
 import net.kapitencraft.kap_lib.registry.custom.core.ModRegistries;
+import net.kapitencraft.kap_lib.requirements.BonusRequirementType;
+import net.kapitencraft.kap_lib.requirements.RequirementManager;
+import net.kapitencraft.kap_lib.util.Vec2i;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -24,7 +30,6 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -33,12 +38,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class BonusManager extends SimpleJsonResourceReloadListener {
+    //TODO cache sets & bonuses for items
+
     public static BonusManager instance;
 
     public static final Codec<List<TagEntry>> TAG_ENTRY_LOADER_CODEC = TagEntry.CODEC.listOf();
     private final RegistryAccess access;
     private final Map<ResourceLocation, SetBonusElement> sets = new HashMap<>();
-    private final Multimap<Item, BonusElement> itemBonuses = HashMultimap.create();
+    private final DoubleMap<Item, ResourceLocation, BonusElement> itemBonuses = DoubleMap.create();
 
     public BonusManager(RegistryAccess access) {
         super(JsonHelper.GSON, "bonuses");
@@ -57,23 +64,40 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
     private void readItemElement(ResourceLocation location, JsonElement element) {
         try {
             JsonObject main = element.getAsJsonObject();
-            Item item = ForgeRegistries.ITEMS.getValue(location);
-            if (item == null) throw new IllegalArgumentException("unknown Item: " + location);
+            ResourceLocation itemLocation = new ResourceLocation(GsonHelper.getAsString(main, "item"));
+            Item item = ForgeRegistries.ITEMS.getValue(itemLocation);
+            if (item == null) throw new IllegalArgumentException("unknown Item: " + itemLocation);
             DataGenSerializer<? extends Bonus<?>> serializer = readFromString(GsonHelper.getAsString(main, "type"));
 
 
             Bonus<?> bonus = serializer.deserialize(GsonHelper.getAsJsonObject(main, "data"));
             boolean hidden = GsonHelper.getAsBoolean(main, "hidden");
-            String translationKey = GsonHelper.getAsString(main, "translationKey");
-            this.itemBonuses.put(item, new BonusElement(hidden, bonus, translationKey));
+            addItemIfAbsent(item);
+            this.itemBonuses.putIfAbsent(item, location, new BonusElement(hidden, bonus));
         } catch (Exception e) {
             KapLibMod.LOGGER.warn("error loading item bonus: {}", e.getMessage());
         }
     }
 
-    public static List<Component> getBonusDisplay(ItemStack stack, Player player) {
-        List<Bonus<?>> available = instance.getAllBonuses(player, true);
-        available.forEach();
+    private void addItemIfAbsent(Item item) {
+        if (!itemBonuses.containsKey(item)) {
+            itemBonuses.put(item, new HashMap<>());
+        }
+    }
+
+    private void addElementForItem(Item item, ResourceLocation location, BonusElement element) {
+        addItemIfAbsent(item);
+    }
+
+    public static List<Component> getBonusDisplay(ItemStack stack, LivingEntity living) {
+        Map<ResourceLocation, BonusElement> available = instance.getBonusesForItem(stack, living, true);
+
+        List<Component> components = new ArrayList<>();
+
+        available.forEach((location, bonus) -> {
+            components.addAll(instance.decorateBonus(living, location, bonus));
+        });
+        return components;
     }
 
     private static DataGenSerializer<? extends Bonus<?>> readFromString(String string) {
@@ -113,38 +137,91 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
             DataGenSerializer<? extends Bonus<?>> serializer = readFromString(GsonHelper.getAsString(main, "type"));
 
             Bonus<?> bonus = serializer.deserialize(GsonHelper.getAsJsonObject(main, "bonus"));
-            String translationKey = GsonHelper.getAsString(main, "translationKey");
             boolean hidden = GsonHelper.getAsBoolean(main, "hidden");
-            this.sets.put(location, new SetBonusElement(hidden, bonus, itemsForSlot, translationKey));
+            this.sets.put(location, new SetBonusElement(hidden, bonus, itemsForSlot));
         } catch (Exception e) {
             KapLibMod.LOGGER.warn("error loading bonus: {}", e.getMessage());
         }
     }
 
-    public List<Bonus<?>> getAllBonuses(LivingEntity living, boolean ignoreHidden) {
-        List<Bonus<?>> bonuses = new ArrayList<>();
-        InventoryHelper.equipment(living).forEach((slot, stack) -> {
-            bonuses.addAll(this.itemBonuses.get(stack.getItem()).stream().filter(bonusElement -> !bonusElement.hidden || ignoreHidden).map(BonusElement::getBonus).toList());
-        });
-        bonuses.addAll(getActiveSetBonuses(living, ignoreHidden));
+    private Map<ResourceLocation, BonusElement> getBonusesForItem(ItemStack stack, LivingEntity living, boolean ignoreHidden) {
+        Map<ResourceLocation, BonusElement> itemBonuses = MapStream
+                .of(this.itemBonuses.get(stack.getItem()))
+                .filterValues(bonusElement -> !bonusElement.hidden || ignoreHidden, null)
+                .toMap();
+        Map<ResourceLocation, SetBonusElement> setBonuses = MapStream.of(this.sets).filter((location, setBonusElement) ->
+            setBonusElement.itemsForSlot.values().stream().anyMatch(stack::is)
+        ).toMap();
+        Map<ResourceLocation, BonusElement> allBonuses = new HashMap<>();
+        allBonuses.putAll(itemBonuses);
+        allBonuses.putAll(setBonuses);
+        return allBonuses;
+    }
+
+    private Map<ResourceLocation, BonusElement> getAllBonuses(LivingEntity living) {
+        Map<ResourceLocation, BonusElement> bonuses = new HashMap<>();
+        InventoryHelper.equipment(living).values()
+                .stream()
+                .map(ItemStack::getItem)
+                .map(this.itemBonuses::get)
+                .forEach(bonuses::putAll);
+        bonuses.putAll(getActiveSetBonuses(living, false));
         return bonuses;
     }
 
-    public List<Bonus<?>> getActiveSetBonuses(LivingEntity living, boolean ignoreHidden) {
+    private List<Component> decorateBonus(LivingEntity living, ResourceLocation bonusLocation, BonusElement element) {
+        List<Component> decoration = new ArrayList<>();
+        boolean enabled = RequirementManager.instance.meetsRequirements(BonusRequirementType.INSTANCE, element, living);
+        decoration.add(getBonusTitle(enabled, living, bonusLocation, element));
+        Bonus<?> bonus = element.bonus;
+        bonus.getDisplay().accept(decoration);
+        ClientHelper.addReqContent(decoration::add, BonusRequirementType.INSTANCE, element, living);
+        return decoration;
+    }
+
+    private Component getBonusTitle(boolean enabled, LivingEntity living, ResourceLocation location, BonusElement element) {
+        boolean set = element instanceof SetBonusElement setBonusElement;
+        MutableComponent name = Component.translatable((set ? "set." : "") + "bonus." + location.getNamespace() + "." + location.getPath()).withStyle((enabled ? ChatFormatting.GOLD : ChatFormatting.DARK_GRAY), ChatFormatting.BOLD);
+        MutableComponent start = Component.translatable((set ? "set." : "") + "bonus.name");
+        MutableComponent join1 = start.append(": ").append(name);
+        if (element instanceof SetBonusElement setBonusElement) {
+            Vec2i count = getSetBonusCount(living, setBonusElement);
+            join1.append(" (")
+                    .append(Component.literal(String.valueOf(count.x)).withStyle(ChatFormatting.AQUA))
+                    .append("/")
+                    .append(Component.literal(String.valueOf(count.y)).withStyle(ChatFormatting.DARK_AQUA))
+                    .append(")");
+        }
+        return join1;
+    }
+
+    private Vec2i getSetBonusCount(LivingEntity living, SetBonusElement element) {
+        List<Boolean> booleans = MapStream.of(InventoryHelper.equipment(living)).mapToSimple((slot, stack) -> element.itemsForSlot.containsKey(slot) ? stack.is(element.itemsForSlot.get(slot)) : null).toList();
+        int c = 0;
+        for (Boolean aBoolean : booleans) {
+            if (aBoolean) c++;
+        }
+        return new Vec2i(c, booleans.size());
+    }
+
+    private Map<ResourceLocation, SetBonusElement> getActiveSetBonuses(LivingEntity living, boolean ignoreHidden) {
         Map<EquipmentSlot, ItemStack> equipment = InventoryHelper.equipment(living);
-        List<Bonus<?>> bonuses = new ArrayList<>();
-        sets.values().stream().filter(setBonusElement -> Arrays.stream(EquipmentSlot.values()).allMatch(slot ->
-                        !setBonusElement.requiresSlot(slot) || setBonusElement.matchesItem(slot, equipment.get(slot)))
-                ).filter(setBonusElement -> !setBonusElement.isHidden() || ignoreHidden)
-                .map(SetBonusElement::getBonus).forEach(bonuses::add);
+        Map<ResourceLocation, SetBonusElement> bonuses = new HashMap<>();
+        sets.forEach((location, setBonusElement) -> {
+            if (Arrays.stream(EquipmentSlot.values()).allMatch(slot ->
+                    !setBonusElement.requiresSlot(slot) || setBonusElement.matchesItem(slot, equipment.get(slot)))
+                    && !setBonusElement.isHidden() || ignoreHidden
+            )
+                bonuses.put(location, setBonusElement);
+        });
         return bonuses;
     }
 
     private static class SetBonusElement extends BonusElement {
         private final Map<EquipmentSlot, TagKey<Item>> itemsForSlot;
 
-        private SetBonusElement(boolean hidden, Bonus<?> bonus, Map<EquipmentSlot, TagKey<Item>> itemsForSlot, String translationKey) {
-            super(hidden, bonus, translationKey);
+        private SetBonusElement(boolean hidden, Bonus<?> bonus, Map<EquipmentSlot, TagKey<Item>> itemsForSlot) {
+            super(hidden, bonus);
             this.itemsForSlot = itemsForSlot;
         }
 
@@ -173,12 +250,10 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
     public static class BonusElement {
         private final boolean hidden;
         private final Bonus<?> bonus;
-        private final String translationKey;
 
-        private BonusElement(boolean hidden, Bonus<?> bonus, String translationKey) {
+        private BonusElement(boolean hidden, Bonus<?> bonus) {
             this.hidden = hidden;
             this.bonus = bonus;
-            this.translationKey = translationKey;
         }
 
         public boolean isHidden() {
@@ -188,10 +263,6 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
 
         public Bonus<?> getBonus() {
             return bonus;
-        }
-
-        public String getTranslationKey() {
-            return translationKey;
         }
     }
 }

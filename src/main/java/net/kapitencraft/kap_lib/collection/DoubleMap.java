@@ -1,6 +1,7 @@
 package net.kapitencraft.kap_lib.collection;
 
 import net.kapitencraft.kap_lib.helpers.CollectionHelper;
+import net.kapitencraft.kap_lib.stream.Consumers;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -100,7 +101,7 @@ public class DoubleMap<MK, K, V> extends HashMap<MK, Map<K, V>> {
     /**
      * gets or adds elements to this map
      */
-    public V getOrAdd(MK mk, K k, V ifAbsent) {
+    public V putIfAbsent(MK mk, K k, V ifAbsent) {
         if (this.immutable) throw new UnsupportedOperationException("tried modifying immutable double map");
         if (this.containsKey(mk)) {
             this.get(mk).putIfAbsent(k, ifAbsent);
@@ -124,6 +125,13 @@ public class DoubleMap<MK, K, V> extends HashMap<MK, Map<K, V>> {
     }
 
     public V computeIfAbsent(MK mk, K k, BiFunction<MK, K, V> mapper) {
-        return getOrAdd(mk, k, mapper.apply(mk, k));
+        return putIfAbsent(mk, k, mapper.apply(mk, k));
+    }
+
+    /**
+     * loops threw all elements in this map
+     */
+    public void forAllEach(Consumers.C3<MK, K, V> consumer) {
+        this.forEach((mk, kvMap) -> kvMap.forEach((k, v) -> consumer.apply(mk, k, v)));
     }
 }

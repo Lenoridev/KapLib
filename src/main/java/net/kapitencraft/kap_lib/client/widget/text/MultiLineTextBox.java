@@ -60,7 +60,6 @@ public class MultiLineTextBox extends ScrollableWidget {
     /** The current character index that should be used as start of the rendered text. */
     private Vec2i cursorPos2d = new Vec2i(0);
     private Vec2i highlightPos2d = new Vec2i(0);
-    private int displayPos;
     private int cursorPos;
     /** other selection position, maybe the same as the cursor */
     private int highlightPos;
@@ -229,10 +228,10 @@ public class MultiLineTextBox extends ScrollableWidget {
         String s1 = (new StringBuilder(this.value)).replace(selectionStart, selectionEnd, insert).toString();
         if (this.filter.test(s1)) {
             this.value = s1;
-            this.setCursorPosition1d(selectionStart + Math.max(0, insertLength));
             this.setHighlightPos(this.cursorPos);
             updateText2d(insert, selectionStart, selectionEnd);
             this.onValueChange(this.value);
+            this.setCursorPosition1d(selectionStart + Math.max(0, insertLength));
         }
     }
 
@@ -508,11 +507,15 @@ public class MultiLineTextBox extends ScrollableWidget {
                 if (cursorPos - loc < 0 || cursorPos - loc > lineEndIndexes.get(i)) {
                     KapLibMod.LOGGER.error("cursor index set to illegal x state: {}", cursorPos - loc);
                 }
-                return;
+                break;
             }
             loc += lineEndIndexes.get(i);
             loc++;
         }
+        reapplySuggestions();
+    }
+
+    private void reapplySuggestions() {
         List<Component> suggestions = this.applySuggestions(this.lineValues.get(this.cursorPos2d.y).substring(Math.max(0, this.getWordPosition(-1)), this.cursorPos2d.x));
         if (!suggestions.isEmpty()) {
             this.suggestions = suggestions;
@@ -756,7 +759,6 @@ public class MultiLineTextBox extends ScrollableWidget {
                 renderHighlight(lineIndex, line, pGuiGraphics, x, y);
             }
         }
-        String s = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.width);
 
         pGuiGraphics.pose().popPose();
         pGuiGraphics.disableScissor();
@@ -770,8 +772,16 @@ public class MultiLineTextBox extends ScrollableWidget {
             }
             pGuiGraphics.disableScissor();
         }
-        if (this.suggestions != null && !this.suggestions.isEmpty()) pGuiGraphics.renderComponentTooltip(this.font, this.suggestions, cursorX, yBase + (cursorPos2d.y + 1) * 10);
+        this.renderSuggestions(pGuiGraphics, cursorX, yBase + (cursorPos2d.y + 1) * 10);
         pGuiGraphics.pose().popPose();
+    }
+
+    private void renderSuggestions(GuiGraphics graphics, int x, int y) {
+        if (this.suggestions != null && !this.suggestions.isEmpty()) {
+            for (int i = 0; i < suggestions.size(); i++) {
+                graphics.drawString(this.font, suggestions.get(i), this.getX() + x, y + 10*i, -1);
+            }
+        }
     }
 
     private List<Component> applySuggestions(String string) {
@@ -783,7 +793,7 @@ public class MultiLineTextBox extends ScrollableWidget {
         List<Component> components = new ArrayList<>();
         suggestions.forEach(string1 -> {
             int boldIndex = TextHelper.getMatchingAmount(string, string1);
-            components.add(Component.literal(string1.substring(0, boldIndex)).withStyle(ChatFormatting.BOLD).append(string1.substring(boldIndex)));
+            components.add(Component.literal(string1.substring(0, boldIndex)).withStyle(ChatFormatting.BLUE).append(string1.substring(boldIndex)));
         });
         return components;
     }
@@ -902,26 +912,6 @@ public class MultiLineTextBox extends ScrollableWidget {
     public void setHighlightPos(int pPosition) {
         int i = this.value.length();
         this.highlightPos = Mth.clamp(pPosition, 0, i);
-        if (this.font != null) {
-            if (this.displayPos > i) {
-                this.displayPos = i;
-            }
-
-            int j = this.width;
-            String s = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), j);
-            int k = s.length() + this.displayPos;
-            if (this.highlightPos == this.displayPos) {
-                this.displayPos -= this.font.plainSubstrByWidth(this.value, j, true).length();
-            }
-
-            if (this.highlightPos > k) {
-                this.displayPos += this.highlightPos - k;
-            } else if (this.highlightPos <= this.displayPos) {
-                this.displayPos -= this.displayPos - this.highlightPos;
-            }
-
-            this.displayPos = Mth.clamp(this.displayPos, 0, i);
-        }
         this.reapplyHighlight2d();
     }
 

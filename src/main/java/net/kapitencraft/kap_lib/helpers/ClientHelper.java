@@ -131,12 +131,12 @@ public class ClientHelper {
     /**
      * add requirement text (e.g. "can only be used in the Nether") to the tooltip given as {@code consumer}
      */
-    public static <T> void addReqContent(Consumer<Component> consumer, RequirementType<T> type, T t, Player player) {
+    public static <T> void addReqContent(Consumer<Component> consumer, RequirementType<T> type, T t, LivingEntity living) {
         if (RequirementManager.instance == null) {
             return;
         }
         List<ReqCondition<?>> reqs = CollectionHelper.mutableList(RequirementManager.instance.getReqs(type, t));
-        if (player != null) reqs.removeIf(itemRequirement -> itemRequirement.matches(player));
+        if (living != null) reqs.removeIf(itemRequirement -> itemRequirement.matches(living));
         if (!reqs.isEmpty()) {
             MutableComponent reqList = Component.empty();
             reqs.stream().map(ReqCondition::display)

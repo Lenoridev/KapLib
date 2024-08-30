@@ -30,7 +30,7 @@ public class ModBonusProvider extends BonusProvider {
                                 )
                         )
                 );
-        this.createItemBonus(Items.NETHERITE_SWORD)
+        this.createItemBonus(Items.NETHERITE_SWORD, "sword_strength")
                 .setBonus(new SimpleSetMobEffect(
                         List.of(
                                 new MobEffectInstance(MobEffects.DAMAGE_BOOST, 5, 10)

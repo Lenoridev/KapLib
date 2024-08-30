@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import net.kapitencraft.kap_lib.KapLibMod;
+import net.kapitencraft.kap_lib.collection.DoubleMap;
 import net.kapitencraft.kap_lib.collection.MapStream;
 import net.kapitencraft.kap_lib.io.serialization.DataGenSerializer;
 import net.kapitencraft.kap_lib.item.bonus.Bonus;
@@ -12,7 +13,6 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagBuilder;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -30,7 +30,7 @@ public abstract class BonusProvider implements DataProvider {
     private final String modId;
 
     private final Map<String, SetBuilder> setBuilders = new HashMap<>();
-    private final Map<ResourceLocation, ItemBuilder> itemBuilders = new HashMap<>();
+    private final DoubleMap<Item, String, ItemBuilder> itemBuilders = DoubleMap.create();
 
     public BonusProvider(PackOutput output, String modId) {
         this.output = output;
@@ -42,10 +42,9 @@ public abstract class BonusProvider implements DataProvider {
         return this.setBuilders.get(name);
     }
 
-    protected ItemBuilder createItemBonus(Item item) {
+    protected ItemBuilder createItemBonus(Item item, String path) {
         ItemBuilder builder = new ItemBuilder();
-        ResourceLocation location = Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item), "unknown item with class: " + item.getClass().getCanonicalName());
-        this.itemBuilders.putIfAbsent(location, builder);
+        this.itemBuilders.putIfAbsent(item, path, builder);
         return builder;
     }
 
@@ -68,12 +67,12 @@ public abstract class BonusProvider implements DataProvider {
                         .resolve(key + ".json");
                 return DataProvider.saveStable(pOutput, saveSet(builder), path);
             }).toList();
-        List<? extends CompletableFuture<?>> itemExecutors = MapStream.of(this.itemBuilders)
-                .mapToSimple((location, itemBuilder) -> {
-                    Path path = output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(location.getNamespace()).resolve("bonuses")
-                            .resolve(location.getPath() + ".json");
-                    return DataProvider.saveStable(pOutput, saveItem(itemBuilder), path);
-                }).toList();
+        List<CompletableFuture<?>> itemExecutors = new ArrayList<>();
+        this.itemBuilders.forAllEach((item, location, itemBuilder) -> {
+            Path path = output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(this.modId).resolve("bonuses")
+                    .resolve(location + ".json");
+            itemExecutors.add(DataProvider.saveStable(pOutput, saveItem(item, itemBuilder), path));
+        });
 
         return CompletableFuture.allOf(
                 CompletableFuture.allOf(setExecutors.toArray(CompletableFuture[]::new)),
@@ -81,7 +80,7 @@ public abstract class BonusProvider implements DataProvider {
         );
     }
 
-    private <T extends Bonus<T>> JsonObject saveItem(ItemBuilder itemBuilder) {
+    private <T extends Bonus<T>> JsonObject saveItem(Item item, ItemBuilder itemBuilder) {
         T bonus = (T) itemBuilder.getBonus();
         JsonObject main = new JsonObject();
         if (itemBuilder.isHidden()) {
@@ -91,12 +90,13 @@ public abstract class BonusProvider implements DataProvider {
             DataGenSerializer<T> serializer = bonus.getSerializer();
             main.add("data", serializer.serialize(bonus));
         }
+        if (item != null) main.addProperty("item", Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item), "unknown item with class: " + item.getClass().getCanonicalName()).toString());
         return main;
     }
 
     private <T extends Bonus<T>> JsonObject saveSet(SetBuilder builder) {
         T bonus = (T) builder.getBonus();
-        JsonObject main = saveItem(builder);
+        JsonObject main = saveItem(null, builder);
         {
             JsonObject items = new JsonObject();
             for (EquipmentSlot slot : builder.content.keySet()) {

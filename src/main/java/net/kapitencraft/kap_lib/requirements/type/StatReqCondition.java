@@ -14,6 +14,7 @@ import net.minecraft.stats.Stat;
 import net.minecraft.stats.StatType;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -87,7 +88,7 @@ public class StatReqCondition extends CountCondition<StatReqCondition> {
     protected final Stat<?> stat;
 
     public StatReqCondition(Stat<?> stat, int level) {
-        super(value -> value instanceof ServerPlayer player ? player.getStats().getValue(stat) : ((LocalPlayer) value).getStats().getValue(stat), level);
+        super(value -> !(value instanceof Player) ? -1 : value instanceof ServerPlayer player ? player.getStats().getValue(stat) : ((LocalPlayer) value).getStats().getValue(stat), level);
         this.stat = stat;
     }
 
