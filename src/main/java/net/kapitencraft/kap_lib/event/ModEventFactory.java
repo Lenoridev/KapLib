@@ -1,10 +1,11 @@
-package net.kapitencraft.kap_lib.event.custom;
+package net.kapitencraft.kap_lib.event;
 
+import net.kapitencraft.kap_lib.event.custom.FetchItemBonusesEvent;
+import net.kapitencraft.kap_lib.event.custom.ItemStackEvent;
 import net.kapitencraft.kap_lib.item.IEventListener;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Rarity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.fml.ModLoader;

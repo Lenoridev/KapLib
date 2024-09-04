@@ -57,6 +57,7 @@ public class KapLibMod
         MinecraftForge.EVENT_BUS.addListener(CommandHelper::registerClient);
 
         StartupMessageManager.addModMessage("KapLib Mod loaded");
+        LOGGER.info("KapLib loaded");
     }
 
     public static String doubleFormat(double d) {

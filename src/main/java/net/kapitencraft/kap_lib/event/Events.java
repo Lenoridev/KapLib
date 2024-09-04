@@ -19,8 +19,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingHealEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -34,7 +33,7 @@ public class Events {
     /**
      * event classes that should not be cancelled
      */
-    private static final List<Class<? extends PlayerEvent>> dontCancel = List.of(
+    private static final List<Class<? extends LivingEvent>> dontCancel = List.of(
             EntityItemPickupEvent.class,
             ItemTooltipEvent.class,
             RenderPlayerEvent.Pre.class,
@@ -44,11 +43,14 @@ public class Events {
             PlayerEvent.TabListNameFormat.class,
             PlayerEvent.PlayerLoggedInEvent.class,
             PlayerEvent.PlayerLoggedOutEvent.class,
-            MovementInputUpdateEvent.class
+            MovementInputUpdateEvent.class,
+            LivingMakeBrainEvent.class,
+            LivingEvent.LivingTickEvent.class,
+            LivingBreatheEvent.class
     );
 
     @SubscribeEvent
-    public static void ensureReqsMet(PlayerEvent event) { //cancel any PlayerEvent that don't meet the item requirements
+    public static void ensureReqsMet(LivingEvent event) { //cancel any PlayerEvent that don't meet the item requirements
         if (!dontCancel.contains(event.getClass()) && !RequirementManager.meetsRequirementsFromEvent(event, EquipmentSlot.MAINHAND) && event.isCancelable()) event.setCanceled(true);
     }
 

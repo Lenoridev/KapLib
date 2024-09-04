@@ -7,7 +7,7 @@ import net.kapitencraft.kap_lib.client.LibClient;
 import net.kapitencraft.kap_lib.client.overlay.box.InteractiveBox;
 import net.kapitencraft.kap_lib.client.overlay.holder.Overlay;
 import net.kapitencraft.kap_lib.collection.MapStream;
-import net.kapitencraft.kap_lib.event.custom.ModEventFactory;
+import net.kapitencraft.kap_lib.event.ModEventFactory;
 import net.kapitencraft.kap_lib.event.custom.client.RegisterOverlaysEvent;
 import net.kapitencraft.kap_lib.helpers.ClientHelper;
 import net.kapitencraft.kap_lib.helpers.CollectionHelper;
@@ -34,18 +34,18 @@ import java.util.function.Function;
  * controls the location, and renders all registered overlays
  */
 @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class OverlayController {
+public class OverlayManager {
     /**
      * the Codec for saving
      */
-    private static final Codec<OverlayController> CODEC = RecordCodecBuilder.create(
+    private static final Codec<OverlayManager> CODEC = RecordCodecBuilder.create(
             renderControllerInstance -> renderControllerInstance.group(
-                    Codec.unboundedMap(IOHelper.UUID_CODEC, OverlayProperties.CODEC).fieldOf("storage").forGetter(OverlayController::getLocations)
-            ).apply(renderControllerInstance, OverlayController::fromCodec)
+                    Codec.unboundedMap(IOHelper.UUID_CODEC, OverlayProperties.CODEC).fieldOf("storage").forGetter(OverlayManager::getLocations)
+            ).apply(renderControllerInstance, OverlayManager::fromCodec)
     );
 
-    private static OverlayController fromCodec(Map<UUID, OverlayProperties> map) {
-        OverlayController controller = new OverlayController();
+    private static OverlayManager fromCodec(Map<UUID, OverlayProperties> map) {
+        OverlayManager controller = new OverlayManager();
         controller.loadedPositions.putAll(map);
         return controller;
     }
@@ -73,15 +73,15 @@ public class OverlayController {
      * load the overlay controller from it's dedicated file
      * @return the loaded controller
      */
-    public static OverlayController load() {
-        return IOHelper.loadFile(getOrCreateFile(), CODEC, OverlayController::new);
+    public static OverlayManager load() {
+        return IOHelper.loadFile(getOrCreateFile(), CODEC, OverlayManager::new);
     }
 
     private final Map<OverlayLocation, Function<OverlayProperties, Overlay>> constructors = new HashMap<>();
     public final Map<OverlayLocation, Overlay> map = new HashMap<>();
     private final Map<UUID, OverlayProperties> loadedPositions = new HashMap<>();
 
-    private OverlayController() {
+    private OverlayManager() {
         this.register();
     }
 
@@ -167,7 +167,7 @@ public class OverlayController {
      * reset all Overlays
      */
     public static void resetAll() {
-        OverlayController controller = LibClient.controller;
+        OverlayManager controller = LibClient.controller;
         Collection<OverlayLocation> locations = controller.constructors.keySet();
         locations.forEach(location -> {
             Overlay holder = controller.map.get(location);

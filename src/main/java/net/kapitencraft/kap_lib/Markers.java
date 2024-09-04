@@ -8,6 +8,7 @@ public class Markers {
     public static final Marker REQUESTS = getMarker("Requests");
     public static final Marker PARTICLE_ENGINE = getMarker("ParticleEngine");
     public static final Marker REQUIREMENTS_MANAGER = getMarker("RequirementManager");
+    public static final Marker BONUS_MANAGER = getMarker("BonusManager");
 
     private static Marker getMarker(String name) {
         return MarkerFactory.getMarker(name);

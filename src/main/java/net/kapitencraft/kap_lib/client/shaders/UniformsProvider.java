@@ -2,7 +2,7 @@ package net.kapitencraft.kap_lib.client.shaders;
 
 import com.mojang.blaze3d.shaders.Uniform;
 import net.kapitencraft.kap_lib.collection.MapStream;
-import net.kapitencraft.kap_lib.event.custom.ModEventFactory;
+import net.kapitencraft.kap_lib.event.ModEventFactory;
 import net.kapitencraft.kap_lib.event.custom.client.RegisterUniformsEvent;
 import net.minecraft.client.renderer.ShaderInstance;
 

@@ -26,7 +26,7 @@ public abstract class LivingEntityMixin extends Entity implements IForgeLivingEn
 
     @Inject(method = "updateFallFlying", at = @At(value = "HEAD"), cancellable = true)
     private void checkRequirements(CallbackInfo ci) {
-        if (!level().isClientSide() && self() instanceof Player player && !RequirementManager.instance.meetsRequirements(RequirementType.ITEM, getItemBySlot(EquipmentSlot.CHEST).getItem(), player)) {
+        if (!level().isClientSide() && !RequirementManager.instance.meetsRequirements(RequirementType.ITEM, getItemBySlot(EquipmentSlot.CHEST).getItem(), self())) {
             setSharedFlag(7, false);
             ci.cancel();
         }

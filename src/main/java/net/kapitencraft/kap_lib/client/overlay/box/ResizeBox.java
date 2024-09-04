@@ -1,7 +1,7 @@
 package net.kapitencraft.kap_lib.client.overlay.box;
 
 import net.kapitencraft.kap_lib.client.LibClient;
-import net.kapitencraft.kap_lib.client.overlay.OverlayController;
+import net.kapitencraft.kap_lib.client.overlay.OverlayManager;
 import net.kapitencraft.kap_lib.client.overlay.OverlayProperties;
 import net.kapitencraft.kap_lib.client.overlay.holder.Overlay;
 import net.kapitencraft.kap_lib.client.gui.IMenuBuilder;
@@ -207,7 +207,7 @@ public class ResizeBox extends ResizeAccessBox implements IMenuBuilder {
     }
 
     private void reset() {
-        OverlayController controller = LibClient.controller;
+        OverlayManager controller = LibClient.controller;
         controller.reset(this.dedicatedHolder);
         this.synchronizePosition();
     }

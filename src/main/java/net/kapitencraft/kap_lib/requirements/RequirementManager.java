@@ -20,6 +20,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeFriendlyByteBuf;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,7 +67,7 @@ public class RequirementManager extends SimpleJsonResourceReloadListener {
         return getReqs(type, value).stream().allMatch(reqCondition -> reqCondition.matches(living));
     }
 
-    public static boolean meetsRequirementsFromEvent(PlayerEvent event, EquipmentSlot slot) {
+    public static boolean meetsRequirementsFromEvent(LivingEvent event, EquipmentSlot slot) {
         return instance.meetsRequirements(RequirementType.ITEM, event.getEntity().getItemBySlot(slot).getItem(), event.getEntity());
     }
 

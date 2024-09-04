@@ -1,7 +1,7 @@
 package net.kapitencraft.kap_lib.io.network;
 
 import net.kapitencraft.kap_lib.KapLibMod;
-import net.kapitencraft.kap_lib.event.custom.ModEventFactory;
+import net.kapitencraft.kap_lib.event.ModEventFactory;
 import net.kapitencraft.kap_lib.event.custom.RegisterRequestEvent;
 import net.kapitencraft.kap_lib.io.network.S2C.SyncRequirementsPacket;
 import net.minecraft.network.FriendlyByteBuf;

@@ -1,10 +1,12 @@
 package net.kapitencraft.kap_lib.item.bonus;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import net.kapitencraft.kap_lib.KapLibMod;
+import net.kapitencraft.kap_lib.Markers;
 import net.kapitencraft.kap_lib.collection.DoubleMap;
 import net.kapitencraft.kap_lib.collection.MapStream;
 import net.kapitencraft.kap_lib.helpers.ClientHelper;
@@ -58,7 +60,6 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
             if (location.getPath().startsWith("set/")) readSetElement(new ResourceLocation(location.getNamespace(), location.getPath().substring(4)), element);
             else readItemElement(location, element);
         });
-        pObject.forEach(this::readSetElement);
     }
 
     private void readItemElement(ResourceLocation location, JsonElement element) {
@@ -69,13 +70,12 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
             if (item == null) throw new IllegalArgumentException("unknown Item: " + itemLocation);
             DataGenSerializer<? extends Bonus<?>> serializer = readFromString(GsonHelper.getAsString(main, "type"));
 
-
-            Bonus<?> bonus = serializer.deserialize(GsonHelper.getAsJsonObject(main, "data"));
-            boolean hidden = GsonHelper.getAsBoolean(main, "hidden");
+            Bonus<?> bonus = serializer.deserialize(main.get("data"));
+            boolean hidden = main.has("hidden") && GsonHelper.getAsBoolean(main, "hidden");
             addItemIfAbsent(item);
             this.itemBonuses.putIfAbsent(item, location, new BonusElement(hidden, bonus));
         } catch (Exception e) {
-            KapLibMod.LOGGER.warn("error loading item bonus: {}", e.getMessage());
+            KapLibMod.LOGGER.warn(Markers.BONUS_MANAGER, "error loading item bonus '{}': {}", location, e.getMessage());
         }
     }
 
@@ -116,8 +116,8 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
                 for (EquipmentSlot slot : EquipmentSlot.values()) {
                     if (!items.has(slot.getName())) continue;
                     ResourceLocation locationForSlot = new ResourceLocation(location.getNamespace(), "set/" + location.getPath() + "/" + slot.getName());
-                    JsonObject itemElements = GsonHelper.getAsJsonObject(items, slot.getName());
-                    List<TagEntry> tagEntries = TAG_ENTRY_LOADER_CODEC.parse(JsonOps.INSTANCE, itemElements).getOrThrow(false, KapLibMod.LOGGER::error);
+                    JsonArray itemElements = GsonHelper.getAsJsonArray(items, slot.getName());
+                    List<TagEntry> tagEntries = TAG_ENTRY_LOADER_CODEC.parse(JsonOps.INSTANCE, itemElements).getOrThrow(false, string -> KapLibMod.LOGGER.error(Markers.BONUS_MANAGER, "error loading bonus '{}': {}", location, string));
                     tagEntriesForBonus.put(locationForSlot,
                             tagEntries.stream()
                                     .map(tagEntry -> new TagLoader.EntryWithSource(tagEntry, locationForSlot.toString()))
@@ -136,11 +136,11 @@ public class BonusManager extends SimpleJsonResourceReloadListener {
             //read Set Type and configuration
             DataGenSerializer<? extends Bonus<?>> serializer = readFromString(GsonHelper.getAsString(main, "type"));
 
-            Bonus<?> bonus = serializer.deserialize(GsonHelper.getAsJsonObject(main, "bonus"));
-            boolean hidden = GsonHelper.getAsBoolean(main, "hidden");
+            Bonus<?> bonus = serializer.deserialize(main.get("data"));
+            boolean hidden = main.has("hidden") && GsonHelper.getAsBoolean(main, "hidden");
             this.sets.put(location, new SetBonusElement(hidden, bonus, itemsForSlot));
         } catch (Exception e) {
-            KapLibMod.LOGGER.warn("error loading bonus: {}", e.getMessage());
+            KapLibMod.LOGGER.warn(Markers.BONUS_MANAGER, "error loading set bonus '{}': {}", location, e.getMessage());
         }
     }
 

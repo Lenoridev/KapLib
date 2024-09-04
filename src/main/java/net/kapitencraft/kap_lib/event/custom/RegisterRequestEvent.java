@@ -10,6 +10,9 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * register request handlers
+ */
 public class RegisterRequestEvent extends Event implements IModBusEvent {
     private final SimpleChannel handler;
     private int id;
@@ -22,7 +25,6 @@ public class RegisterRequestEvent extends Event implements IModBusEvent {
     private int id() {
         return id++;
     }
-
 
     private <T extends SimplePacket> void addMessage(Class<T> tClass, NetworkDirection direction, Function<FriendlyByteBuf, T> decoder) {
         handler.messageBuilder(tClass, id(), direction)

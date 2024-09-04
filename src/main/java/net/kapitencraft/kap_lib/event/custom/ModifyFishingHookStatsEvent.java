@@ -6,6 +6,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.Event;
 
+/**
+ * called whenever a player starts using a FishingHook
+ * <br> used to calculate changes on fishing hooks stats
+ */
 public class ModifyFishingHookStatsEvent extends Event {
     public final Entity hook;
     public final Player player;
@@ -23,6 +27,6 @@ public class ModifyFishingHookStatsEvent extends Event {
         this.lureSpeed = new IntegerModifierCollector();
         this.luck = new IntegerModifierCollector();
         this.lureSpeed.setBase(lureSpeed);
-        this.lureSpeed.setBase(luck);
+        this.luck.setBase(luck);
     }
 }

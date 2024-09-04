@@ -1,6 +1,6 @@
 package net.kapitencraft.kap_lib.item.misc;
 
-import net.kapitencraft.kap_lib.event.custom.ModEventFactory;
+import net.kapitencraft.kap_lib.event.ModEventFactory;
 import net.kapitencraft.kap_lib.event.custom.RegisterAnvilUsesEvent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.AnvilUpdateEvent;
