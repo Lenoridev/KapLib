@@ -69,6 +69,8 @@ public class MultiLineTextBox extends ScrollableWidget {
     @Nullable
     private ISuggestion suggestionBuilder;
     private List<Component> suggestions;
+    private int suggestionOffset;
+    private String suggestionKey;
     /**
      * whether, and how lines should be marked
     */
@@ -236,7 +238,7 @@ public class MultiLineTextBox extends ScrollableWidget {
     }
 
     private void updateText2d(String insert, int selectionStart, int selectionEnd) {
-        List<String> insert2d = "\n".equals(insert) ? List.of("", "") : List.of(insert.split("\n"));
+        List<String> insert2d = List.of(insert.split("\n", Integer.MAX_VALUE));
         Vec2i startLineIndex = get2dPositionFrom1dPosition(selectionStart);
         Vec2i endLineIndex = get2dPositionFrom1dPosition(selectionEnd);
 
@@ -444,6 +446,45 @@ public class MultiLineTextBox extends ScrollableWidget {
         return i;
     }
 
+    private int getWordPosition2d(int pN) {
+        return getWordPosition2d(pN, this.cursorPos2d);
+    }
+
+    private int getWordPosition2d(int pN, Vec2i pPos) {
+        return getWordPosition2d(pN, pPos, true);
+    }
+
+    private int getWordPosition2d(int pN, Vec2i pPos, boolean pSkipWs) {
+        int i = pPos.x;
+        boolean flag = pN < 0;
+        int j = Math.abs(pN);
+        String value = this.lineValues.get(pPos.y);
+
+        for(int k = 0; k < j; ++k) {
+            if (!flag) {
+                int l = value.length();
+                i = value.indexOf(32, i);
+                if (i == -1) {
+                    i = l;
+                } else {
+                    while(pSkipWs && i < l && value.charAt(i) == ' ') {
+                        ++i;
+                    }
+                }
+            } else {
+                while(pSkipWs && i > 0 && value.charAt(i - 1) == ' ') {
+                    --i;
+                }
+
+                while(i > 0 && value.charAt(i - 1) != ' ') {
+                    --i;
+                }
+            }
+        }
+
+        return i;
+    }
+
     /**
      * Moves the text cursor by a specified number of characters
      */
@@ -516,10 +557,11 @@ public class MultiLineTextBox extends ScrollableWidget {
     }
 
     private void reapplySuggestions() {
-        List<Component> suggestions = this.applySuggestions(this.lineValues.get(this.cursorPos2d.y).substring(Math.max(0, this.getWordPosition(-1)), this.cursorPos2d.x));
-        if (!suggestions.isEmpty()) {
-            this.suggestions = suggestions;
-        }
+        int suggestionOffsetIndex = Math.max(0, this.getWordPosition2d(-1));
+        this.suggestionKey = this.lineValues.get(this.cursorPos2d.y)
+                .substring(suggestionOffsetIndex, this.cursorPos2d.x);
+        this.suggestionOffset = this.font.width(this.getFromStartSection(new Vec2i(suggestionOffsetIndex, this.cursorPos2d.y)));
+        this.applySuggestions();
     }
 
     private void reapplyHighlight2d() {
@@ -592,6 +634,11 @@ public class MultiLineTextBox extends ScrollableWidget {
                 return true;
             } else {
                 return switch (pKeyCode) {
+
+                    case 256 -> {
+                        this.setFocused(false);
+                        yield true;
+                    }
                     case 257 -> {
                         this.insertText("\n");
                         yield true;
@@ -743,10 +790,6 @@ public class MultiLineTextBox extends ScrollableWidget {
                 pGuiGraphics.drawString(this.font, this.formatter.format(line, lineIndex), x, y, textColor);
             }
 
-            if (this.hint != null && line.isEmpty() && !this.isFocused()) {
-                pGuiGraphics.drawString(this.font, this.hint, cursorX, y, textColor);
-            }
-
             if (showCursor) {
                 if (!this.value.isEmpty()) {
                     pGuiGraphics.fill(RenderType.guiOverlay(), cursorX, y - 1, cursorX + 1, y + 1 + 9, CURSOR_INSERT_COLOR);
@@ -766,36 +809,36 @@ public class MultiLineTextBox extends ScrollableWidget {
         pGuiGraphics.pose().pushPose();
         pGuiGraphics.pose().translate(this.getX(), this.getY(), 0);
         if (this.lineRenderType != LineRenderType.DISABLED) {
-            pGuiGraphics.enableScissor(getX(), getY(), getX() + this.getLineMarkerWidth(), getY() + this.height);
+            pGuiGraphics.enableScissor(getX(), getY(), textXStart, getY() + this.height);
             for (int i = 0; i < lineValues.size(); i++) {
                 if (i % this.lineRenderType.lineOffset == 0) pGuiGraphics.drawString(this.font, String.valueOf(i+1), 1, yBase + i * 10, textColor);
             }
             pGuiGraphics.disableScissor();
         }
-        this.renderSuggestions(pGuiGraphics, cursorX, yBase + (cursorPos2d.y + 1) * 10);
+        this.renderSuggestions(pGuiGraphics, this.suggestionOffset + this.getLineMarkerWidth() + x, yBase + (cursorPos2d.y + 1) * 10);
         pGuiGraphics.pose().popPose();
     }
 
-    private void renderSuggestions(GuiGraphics graphics, int x, int y) {
+    private void renderSuggestions(GuiGraphics graphics, int renderStart, int y) {
         if (this.suggestions != null && !this.suggestions.isEmpty()) {
             for (int i = 0; i < suggestions.size(); i++) {
-                graphics.drawString(this.font, suggestions.get(i), this.getX() + x, y + 10*i, -1);
+                graphics.drawString(this.font, suggestions.get(i), renderStart, y + 10*i, -1);
             }
         }
     }
 
-    private List<Component> applySuggestions(String string) {
+    private void applySuggestions() {
         List<String> suggestions;
-        if (suggestionBuilder == null) suggestions = List.of(string);
+        if (suggestionBuilder == null) suggestions = List.of(this.suggestionKey);
         else {
-            suggestions = this.suggestionBuilder.suggestions(string);
+            suggestions = this.suggestionBuilder.suggestions(this.suggestionKey);
         }
         List<Component> components = new ArrayList<>();
         suggestions.forEach(string1 -> {
-            int boldIndex = TextHelper.getMatchingAmount(string, string1);
+            int boldIndex = TextHelper.getMatchingAmount(this.suggestionKey, string1);
             components.add(Component.literal(string1.substring(0, boldIndex)).withStyle(ChatFormatting.BLUE).append(string1.substring(boldIndex)));
         });
-        return components;
+        if (!components.isEmpty()) this.suggestions = components;
     }
 
     private int getLineMarkerWidth() {

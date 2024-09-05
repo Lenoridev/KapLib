@@ -28,12 +28,6 @@ public class TestScreen extends Screen {
         textBox = new MultiLineTextBox(this.font, width / 2 - widgetWidth / 2, height / 2 - widgetHeight / 2, widgetWidth, widgetHeight, textBox, Component.empty());
         textBox.setBackground(WidgetBackground.fill(0xFF000000));
         textBox.setLineRenderType(MultiLineTextBox.LineRenderType.EVERY);
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null) {
-            textBox.onLineCreated(integer -> player.sendSystemMessage(Component.literal("Created line: " + integer)));
-            textBox.onLineModified((integer, string) -> player.sendSystemMessage(Component.literal("Line " + integer + " was modified to: " + string)));
-            textBox.onLineRemoved(integer -> player.sendSystemMessage(Component.literal("Removed line: " + integer)));
-        }
         this.addRenderableWidget(textBox);
     }
 
@@ -51,5 +45,6 @@ public class TestScreen extends Screen {
     @Override
     public void onClose() {
         this.textBox.onClose();
+        super.onClose();
     }
 }
