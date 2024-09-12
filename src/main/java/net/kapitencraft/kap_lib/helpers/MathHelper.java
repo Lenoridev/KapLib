@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 
 public interface MathHelper {
 
@@ -114,11 +115,7 @@ public interface MathHelper {
      * @return the biggest integer from the map
      */
     static int getLargest(@NotNull Collection<Integer> floats) {
-        int largest = 0;
-        for (int f : floats) {
-            if (f > largest) largest = f;
-        }
-        return largest;
+        return floats.stream().mapToInt(i -> i).max().orElse(0);
     }
 
     /**

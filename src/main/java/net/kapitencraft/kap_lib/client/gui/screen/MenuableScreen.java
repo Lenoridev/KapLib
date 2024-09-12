@@ -56,7 +56,7 @@ public class MenuableScreen extends Screen {
                 }
             }
         }
-        if (this.defaultMenuBuilder != null) {
+        if (pButton == 1 && listener == null && this.defaultMenuBuilder != null) {
             listener = makeMenu(defaultMenuBuilder, pMouseX, pMouseY);
         }
         if (listener != null) {

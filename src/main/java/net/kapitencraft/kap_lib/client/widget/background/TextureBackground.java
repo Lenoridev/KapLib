@@ -7,6 +7,9 @@ import net.minecraft.util.Mth;
 
 import java.util.Objects;
 
+/**
+ * widget background for a texture
+ */
 public class TextureBackground extends CutoutBackground {
     private final ResourceLocation texture;
     private final int textureWidth, textureHeight;

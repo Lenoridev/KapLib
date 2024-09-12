@@ -14,10 +14,11 @@ import net.minecraft.world.phys.Vec2;
  */
 public abstract class Overlay {
     private final OverlayProperties properties;
-    private Component name;
+    private final Component name;
 
-    public Overlay(OverlayProperties holder) {
+    public Overlay(OverlayProperties holder, Component name) {
         this.properties = holder;
+        this.name = name;
     }
 
     /**

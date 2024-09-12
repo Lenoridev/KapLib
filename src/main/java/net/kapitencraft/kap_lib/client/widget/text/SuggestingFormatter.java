@@ -1,13 +1,11 @@
 package net.kapitencraft.kap_lib.client.widget.text;
 
-import net.minecraft.util.FormattedCharSequence;
-
 import java.util.List;
 
 /**
- * a connection from {@link ISuggestion} and {@link IFormatter}
+ * a connection from {@link ISuggestionProvider} and {@link IFormatter}
  */
-public abstract class SuggestingFormatter implements ISuggestion, IFormatter {
+public abstract class SuggestingFormatter implements ISuggestionProvider, IFormatter {
     private boolean focused;
 
     @Override

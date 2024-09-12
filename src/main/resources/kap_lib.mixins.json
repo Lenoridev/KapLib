@@ -7,7 +7,8 @@
   "client": [
     "client.ChatScreenMixin",
     "client.EnchantedBookItemMixin",
-    "client.ItemStackMixin"
+    "client.ItemStackMixin",
+    "client.RecipeBookComponentMixin"
   ],
   "mixins": [
     "FishingHookMixin",

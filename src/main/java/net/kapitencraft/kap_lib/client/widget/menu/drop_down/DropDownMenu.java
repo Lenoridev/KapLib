@@ -11,7 +11,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
+/**
+ * drop down menu
+ * see {@link net.kapitencraft.kap_lib.client.gui.screen.ChangeOverlayLocationsScreen ChangeOverlayLocationsScreen} for example
+ */
 public class DropDownMenu extends Menu {
+
     private final ListElement root = new ListElement(null, this, Component.empty()) {
         @Override
         protected boolean shouldShowChildren() {

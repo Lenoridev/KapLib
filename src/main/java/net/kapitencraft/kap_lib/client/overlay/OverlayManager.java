@@ -5,22 +5,26 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.client.LibClient;
 import net.kapitencraft.kap_lib.client.overlay.box.InteractiveBox;
+import net.kapitencraft.kap_lib.client.overlay.holder.MultiLineOverlay;
 import net.kapitencraft.kap_lib.client.overlay.holder.Overlay;
 import net.kapitencraft.kap_lib.collection.MapStream;
 import net.kapitencraft.kap_lib.event.ModEventFactory;
 import net.kapitencraft.kap_lib.event.custom.client.RegisterOverlaysEvent;
-import net.kapitencraft.kap_lib.helpers.ClientHelper;
-import net.kapitencraft.kap_lib.helpers.CollectionHelper;
-import net.kapitencraft.kap_lib.helpers.IOHelper;
-import net.kapitencraft.kap_lib.helpers.MiscHelper;
+import net.kapitencraft.kap_lib.helpers.*;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
@@ -89,8 +93,29 @@ public class OverlayManager {
      * fire the {@link RegisterOverlaysEvent} for registering custom events
      */
     private void register() {
+        this.createRenderer(OverlayLocations.STATS, positionHolder -> new MultiLineOverlay(
+                Component.translatable("overlay.stats"),
+                positionHolder,
+                -10,
+                List.of(
+                        player -> Component.literal("Protection: " + getDamageProtection(player) + "%").withStyle(ChatFormatting.DARK_BLUE),
+                        player -> Component.literal("Effective HP: " + MathHelper.defRound(player.getHealth() * 100 / (100 - getDamageProtection(player)))).withStyle(ChatFormatting.DARK_AQUA),
+                        player -> Component.literal("Current Speed: " + cancelGravityMovement(player) + " b/s").withStyle(ChatFormatting.YELLOW)
+                )
+        ));
         ModEventFactory.fireModEvent(new RegisterOverlaysEvent(this::createRenderer));
         construct();
+    }
+
+    private static double getDamageProtection(LivingEntity living) {
+        return MathHelper.defRound(100 - MathHelper.calculateDamage(100, living.getAttributeValue(Attributes.ARMOR), living.getAttributeValue(Attributes.ARMOR_TOUGHNESS)));
+    }
+
+    private static double cancelGravityMovement(LivingEntity living) {
+        Vec3 delta = living.getDeltaMovement();
+        if (living.onGround())
+            delta = delta.add(0, living.getAttributeValue(ForgeMod.ENTITY_GRAVITY.get()), 0);
+        return MathHelper.defRound(delta.length()) * 20;
     }
 
     private void createRenderer(OverlayLocation provider, Function<OverlayProperties, Overlay> constructor) {

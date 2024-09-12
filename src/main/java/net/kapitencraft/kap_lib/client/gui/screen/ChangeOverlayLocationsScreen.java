@@ -30,6 +30,7 @@ public class ChangeOverlayLocationsScreen extends MenuableScreen {
             DropDownMenu menu = new DropDownMenu(x, y, this);
             menu.addElement(
                     MultiElementSelectorElement.builder(Overlay.class)
+                            .setName(Component.translatable("gui.overlays"))
                             .setElements(controller.map.values())
                             .setStatusMapper(Overlay::isVisible)
                             .setNameMapper(Overlay::getName)

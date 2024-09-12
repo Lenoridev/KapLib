@@ -16,8 +16,8 @@ import java.util.function.Function;
 public class MultiLineOverlay extends Overlay {
     private final float yChange;
     private final List<Function<LocalPlayer, Component>> list;
-    public MultiLineOverlay(OverlayProperties holder, float yChange, List<Function<LocalPlayer, Component>> allText) {
-        super(holder);
+    public MultiLineOverlay(Component name, OverlayProperties holder, float yChange, List<Function<LocalPlayer, Component>> allText) {
+        super(holder, name);
         this.yChange = yChange;
         this.list = allText;
     }

@@ -7,7 +7,6 @@ import net.kapitencraft.kap_lib.config.ClientModConfig;
 import net.kapitencraft.kap_lib.helpers.ClientHelper;
 import net.kapitencraft.kap_lib.helpers.MathHelper;
 import net.kapitencraft.kap_lib.helpers.TextHelper;
-import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -64,13 +63,15 @@ public class MultiLineTextBox extends ScrollableWidget {
     /** other selection position, maybe the same as the cursor */
     private int highlightPos;
     private int textColor = DEFAULT_TEXT_COLOR;
-    private int textColorUneditable = 7368816;
+    private int textColorUnEditable = 7368816;
     private WidgetBackground background = WidgetBackground.fill(BACKGROUND_COLOR);
     @Nullable
-    private ISuggestion suggestionBuilder;
-    private List<Component> suggestions;
+    private ISuggestionProvider suggestionBuilder;
+    private List<Suggestion> suggestions;
     private int suggestionOffset;
     private String suggestionKey;
+    private int suggestionSelectIndex;
+    private int suggestionsWidth;
     /**
      * whether, and how lines should be marked
     */
@@ -124,8 +125,8 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.textColor = textColor;
     }
 
-    public void setTextColorUneditable(int textColorUneditable) {
-        this.textColorUneditable = textColorUneditable;
+    public void setTextColorUnEditable(int textColorUnEditable) {
+        this.textColorUnEditable = textColorUnEditable;
     }
 
     public void setTextCallback(ITextCallback callback) {
@@ -556,12 +557,45 @@ public class MultiLineTextBox extends ScrollableWidget {
         reapplySuggestions();
     }
 
+    private void applySuggestions() {
+        List<String> suggestions;
+        if (suggestionBuilder == null) suggestions = List.of(
+                this.suggestionKey,
+                "aaaaaa", //test
+                "abcdefgh" //test
+        );
+        else {
+            suggestions = this.suggestionBuilder.suggestions(this.suggestionKey);
+        }
+        List<Suggestion> suggestionList = new ArrayList<>();
+        suggestions.forEach(string1 -> {
+            if (string1.isEmpty()) return; //make sure to skip empty suggestions
+            int markIndex = TextHelper.getMatchingAmount(this.suggestionKey, string1);
+            if (markIndex == 0) return; //make sure to skip non-matching suggestions
+
+            suggestionList.add(new Suggestion(markIndex, string1));
+        });
+        this.suggestions = suggestionList;
+        if (this.suggestionSelectIndex >= this.suggestions.size()) this.suggestionSelectIndex = 0;
+        this.suggestionsWidth = this.suggestions.stream().mapToInt(sug -> sug.getWidth(font)).max().orElse(0);
+    }
+
+    private void enterSuggestion() {
+        Suggestion suggestion = this.suggestions.get(suggestionSelectIndex);
+        suggestion.insertString(this::insertText);
+    }
+
+
     private void reapplySuggestions() {
         int suggestionOffsetIndex = Math.max(0, this.getWordPosition2d(-1));
         this.suggestionKey = this.lineValues.get(this.cursorPos2d.y)
                 .substring(suggestionOffsetIndex, this.cursorPos2d.x);
         this.suggestionOffset = this.font.width(this.getFromStartSection(new Vec2i(suggestionOffsetIndex, this.cursorPos2d.y)));
         this.applySuggestions();
+    }
+
+    private boolean hasSuggestions() {
+        return this.suggestions != null && !this.suggestions.isEmpty();
     }
 
     private void reapplyHighlight2d() {
@@ -640,11 +674,13 @@ public class MultiLineTextBox extends ScrollableWidget {
                         yield true;
                     }
                     case 257 -> {
-                        this.insertText("\n");
+                        if (this.hasSuggestions()) this.enterSuggestion();
+                        else this.insertText("\n");
                         yield true;
                     }
                     case 258 -> {
-                        this.insertText("\t");
+                        if (this.hasSuggestions()) this.enterSuggestion();
+                        else this.insertText("\t");
                         yield true;
                     }
                     case 259 -> {
@@ -685,12 +721,20 @@ public class MultiLineTextBox extends ScrollableWidget {
                     }
                     case 264 -> {
                         //move down
-                        moveCursorVertical(1);
+                        if (hasSuggestions()) {
+                            if (this.suggestionSelectIndex  == this.suggestions.size() - 1) {
+                                this.suggestionSelectIndex = 0;
+                            } else this.suggestionSelectIndex++;
+                        } else moveCursorVertical(1);
                         yield true;
                     }
                     case 265 -> {
                         //move up
-                        moveCursorVertical(-1);
+                        if (hasSuggestions()) {
+                            if (this.suggestionSelectIndex  == 0) {
+                                this.suggestionSelectIndex = this.suggestions.size() - 1;
+                            } else this.suggestionSelectIndex--;
+                        } else moveCursorVertical(-1);
                         yield true;
                     }
                     case 268 -> {
@@ -775,7 +819,7 @@ public class MultiLineTextBox extends ScrollableWidget {
         //actual text
         pGuiGraphics.pose().pushPose();
         pGuiGraphics.pose().translate((float)textXStart, (float)getY(), 0.0F);
-        int textColor = this.isEditable ? this.textColor : this.textColorUneditable;
+        int textColor = this.isEditable ? this.textColor : this.textColorUnEditable;
         int x = Mth.floor(this.scrollX);
         int yBase = Mth.floor(this.scrollY);
         int cursorX = x + this.font.width(getFromStartSection(cursorPos2d));
@@ -820,25 +864,14 @@ public class MultiLineTextBox extends ScrollableWidget {
     }
 
     private void renderSuggestions(GuiGraphics graphics, int renderStart, int y) {
+        graphics.pose().translate(0, 0, 200);
         if (this.suggestions != null && !this.suggestions.isEmpty()) {
+            graphics.fill(renderStart - 1, y, renderStart + suggestionsWidth, y + 2 + 10*suggestions.size(), 0xFF505050);
             for (int i = 0; i < suggestions.size(); i++) {
-                graphics.drawString(this.font, suggestions.get(i), renderStart, y + 10*i, -1);
+                if (suggestionSelectIndex == i) graphics.fill(renderStart - 1, y + i * 10, renderStart + suggestionsWidth, y + 12 + i * 10, 0xFFC4CfC4);
+                graphics.drawString(this.font, suggestions.get(i).getRenderable(), renderStart, y + 1 + 10*i, -1);
             }
         }
-    }
-
-    private void applySuggestions() {
-        List<String> suggestions;
-        if (suggestionBuilder == null) suggestions = List.of(this.suggestionKey);
-        else {
-            suggestions = this.suggestionBuilder.suggestions(this.suggestionKey);
-        }
-        List<Component> components = new ArrayList<>();
-        suggestions.forEach(string1 -> {
-            int boldIndex = TextHelper.getMatchingAmount(this.suggestionKey, string1);
-            components.add(Component.literal(string1.substring(0, boldIndex)).withStyle(ChatFormatting.BLUE).append(string1.substring(boldIndex)));
-        });
-        if (!components.isEmpty()) this.suggestions = components;
     }
 
     private int getLineMarkerWidth() {
@@ -976,7 +1009,7 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.visible = pIsVisible;
     }
 
-    public void setSuggestionBuilder(@Nullable ISuggestion pSuggestion) {
+    public void setSuggestionBuilder(@Nullable ISuggestionProvider pSuggestion) {
         this.suggestionBuilder = pSuggestion;
     }
 

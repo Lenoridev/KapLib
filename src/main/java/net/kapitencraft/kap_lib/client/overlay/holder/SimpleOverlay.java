@@ -13,8 +13,8 @@ import java.util.function.Function;
  */
 public class SimpleOverlay extends Overlay {
     private final Function<LocalPlayer, Component> mapper;
-    public SimpleOverlay(OverlayProperties holder, Function<LocalPlayer, Component> mapper) {
-        super(holder);
+    public SimpleOverlay(Component name, OverlayProperties holder, Function<LocalPlayer, Component> mapper) {
+        super(holder, name);
         this.mapper = mapper;
     }
 

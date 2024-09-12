@@ -9,7 +9,7 @@ import java.util.UUID;
  * internal OverlayLocations
  */
 public enum OverlayLocations implements OverlayLocation {
-    STATS("cf4eb19d-aec8-4e65-8b43-c5e573b4561b", new OverlayProperties(-220f, 22.5f, .75f, .75f, OverlayProperties.Alignment.MIDDLE, OverlayProperties.Alignment.BOTTOM_RIGHT));
+    STATS("cf4eb19d-aec8-4e65-8b43-c5e573b4561b", new OverlayProperties(-188.75f, 24f, .75f, .75f, OverlayProperties.Alignment.MIDDLE, OverlayProperties.Alignment.BOTTOM_RIGHT));
 
 
     private final UUID uuid;

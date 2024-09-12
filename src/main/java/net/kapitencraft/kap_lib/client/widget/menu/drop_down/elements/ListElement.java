@@ -47,11 +47,7 @@ public class ListElement extends Element {
     }
 
     public int childrenWidth() {
-        return MathHelper.getLargest(this.children
-                .stream()
-                .map(Element::width)
-                .toList()
-        );
+        return this.children.stream().mapToInt(Element::width).max().orElse(0);
     }
 
     @Override

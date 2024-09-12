@@ -2,6 +2,9 @@ package net.kapitencraft.kap_lib.client.widget.background;
 
 import net.minecraft.client.gui.GuiGraphics;
 
+/**
+ * background to fill with color
+ */
 public class FillBackground extends WidgetBackground {
     private final int color;
 

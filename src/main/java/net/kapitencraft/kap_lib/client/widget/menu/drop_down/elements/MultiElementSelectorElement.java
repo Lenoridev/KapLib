@@ -18,10 +18,10 @@ public class MultiElementSelectorElement<T> extends ListElement {
 
     public MultiElementSelectorElement(@Nullable ListElement listElement, DropDownMenu menu, Component component, Collection<T> elements, Predicate<T> statusMapper, Function<T, Component> nameMapper, BiConsumer<T, Boolean> onChange) {
         super(listElement, menu, component);
-        elements.forEach(t -> this.addElement(new SelectorElement(this, menu, t)));
         this.statusMapper = statusMapper;
         this.nameMapper = nameMapper;
         this.onChange = onChange;
+        elements.forEach(t -> this.addElement(new SelectorElement(this, menu, t)));
     }
 
     private class SelectorElement extends BooleanElement {

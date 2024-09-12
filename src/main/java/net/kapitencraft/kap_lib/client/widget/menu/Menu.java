@@ -17,8 +17,17 @@ public abstract class Menu extends Widget {
         this.parent = parent;
     }
 
+    /**
+     * called when a Menu is shown
+     * init all information here
+     */
     public abstract void show();
 
+    /**
+     * called whenever the Menu is hidden
+     * default implementation returns focus to parent GuiEventListener
+     * @param screen the Screen the hide call came from
+     */
     public void hide(Screen screen) {
         screen.setFocused(parent);
     }
