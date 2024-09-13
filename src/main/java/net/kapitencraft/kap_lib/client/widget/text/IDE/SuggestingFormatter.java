@@ -1,4 +1,6 @@
-package net.kapitencraft.kap_lib.client.widget.text;
+package net.kapitencraft.kap_lib.client.widget.text.IDE;
+
+import net.kapitencraft.kap_lib.client.widget.text.IFormatter;
 
 import java.util.List;
 

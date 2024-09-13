@@ -3,6 +3,7 @@ package net.kapitencraft.kap_lib.client.widget.text;
 import net.kapitencraft.kap_lib.KapLibMod;
 import net.kapitencraft.kap_lib.client.widget.ScrollableWidget;
 import net.kapitencraft.kap_lib.client.widget.background.WidgetBackground;
+import net.kapitencraft.kap_lib.client.widget.text.IDE.*;
 import net.kapitencraft.kap_lib.config.ClientModConfig;
 import net.kapitencraft.kap_lib.helpers.ClientHelper;
 import net.kapitencraft.kap_lib.helpers.MathHelper;
@@ -33,11 +34,13 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class MultiLineTextBox extends ScrollableWidget {
@@ -592,6 +595,31 @@ public class MultiLineTextBox extends ScrollableWidget {
                 .substring(suggestionOffsetIndex, this.cursorPos2d.x);
         this.suggestionOffset = this.font.width(this.getFromStartSection(new Vec2i(suggestionOffsetIndex, this.cursorPos2d.y)));
         this.applySuggestions();
+    }
+
+    public Suggestion[] getSuggestions(String text, int cursorPos, IDEClass[] classes) {
+        List<Suggestion> suggestions = new ArrayList<>();
+        int lastSpaceIndex = text.lastIndexOf(" ", cursorPos) == -1 ? 0 : text.lastIndexOf(" ", cursorPos);
+        int nextSpaceIndex = text.indexOf(" ", cursorPos) == -1 ? text.length() : text.indexOf(" ", cursorPos);
+        String currentWord = text.substring(lastSpaceIndex, nextSpaceIndex);
+
+        IDEVar[] vars = Arrays.stream(classes).flatMap(ideClass -> ideClass.getVariables().stream()).toArray(IDEVar[]::new);
+        IDEMethod[] methods = Arrays.stream(classes).flatMap(ideClass -> ideClass.getMethods().stream()).toArray(IDEMethod[]::new);
+        for (IDEVar var : vars) {
+            String name = var.name;
+            if (name.toLowerCase().contains(currentWord.toLowerCase())) {
+                Suggestion sug = new Suggestion(lastSpaceIndex, name, null, var.packageName, var.varType, null);
+                suggestions.add(sug);
+            }
+        }
+        for (IDEMethod method : methods) {
+            String name = method.name;
+            if (name.toLowerCase().contains(currentWord.toLowerCase())) {
+                Suggestion sug = new Suggestion(lastSpaceIndex, name, null, method.packageName, method.returnType.name, null);
+            }
+        }
+
+        return suggestions.toArray(Suggestion[]::new);
     }
 
     private boolean hasSuggestions() {

@@ -1,5 +1,6 @@
-package net.kapitencraft.kap_lib.client.widget.text;
+package net.kapitencraft.kap_lib.client.widget.text.IDE;
 
+import net.kapitencraft.kap_lib.client.widget.text.IFormatter;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 
 import java.util.List;

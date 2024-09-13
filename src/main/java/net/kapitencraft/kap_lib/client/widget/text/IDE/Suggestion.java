@@ -1,4 +1,4 @@
-package net.kapitencraft.kap_lib.client.widget.text;
+package net.kapitencraft.kap_lib.client.widget.text.IDE;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
@@ -9,6 +9,9 @@ import java.util.function.Consumer;
 public class Suggestion {
     private final int insertIndex;
     private final String suggestionString;
+    private String packageName;
+    private String varType;
+    private String extraInformation;
     private final Component renderSuggestion;
 
     public Suggestion(int insertIndex, String suggestionString) {
@@ -16,6 +19,15 @@ public class Suggestion {
                 suggestionString.substring(0, insertIndex)).withStyle(ChatFormatting.BLUE)
                         .append(suggestionString.substring(insertIndex))
         );
+    }
+
+    public Suggestion(int insertIndex, String suggestionString, Component renderSuggestion, String packageName, String varType, String extraInformation) {
+        this.insertIndex = insertIndex;
+        this.suggestionString = suggestionString;
+        this.renderSuggestion = renderSuggestion;
+        this.packageName = packageName;
+        this.varType = varType;
+        this.extraInformation = extraInformation;
     }
 
     public Suggestion(int insertIndex, String suggestionString, Component renderSuggestion) {
