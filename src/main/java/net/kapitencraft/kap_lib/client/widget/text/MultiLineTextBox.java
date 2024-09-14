@@ -33,10 +33,7 @@ import net.kapitencraft.kap_lib.util.Vec2i;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -598,13 +595,28 @@ public class MultiLineTextBox extends ScrollableWidget {
     }
 
     public Suggestion[] getSuggestions(String text, int cursorPos, IDEClass[] classes) {
+        final IDEVar[] vars = Arrays.stream(classes).flatMap(ideClass -> ideClass.getVariables().stream()).toArray(IDEVar[]::new);
+        final IDEMethod[] methods = Arrays.stream(classes).flatMap(ideClass -> ideClass.getMethods().stream()).toArray(IDEMethod[]::new);
+
+        final String[] PRIMARY_MODIFIER_KEYWORDS = {"public", "private"};
+        final String[] SECONDARY_MODIFIER_KEYWORDS = {"static", "final", "transient"};
+        final String[] PRIMITIVE_DATA_TYPE_KEYWORDS = {"void", "int", "boolean", "float", "char", "short", "byte", "double"};
+        final String[] CUSTOM_DATA_TYPE_KEYWORDS = Arrays.stream(vars).map(IDEObject::getName).toArray(String[]::new);
+
         List<Suggestion> suggestions = new ArrayList<>();
+
         int lastSpaceIndex = text.lastIndexOf(" ", cursorPos) == -1 ? 0 : text.lastIndexOf(" ", cursorPos);
         int nextSpaceIndex = text.indexOf(" ", cursorPos) == -1 ? text.length() : text.indexOf(" ", cursorPos);
         String currentWord = text.substring(lastSpaceIndex, nextSpaceIndex);
+        int lastSemicolonIndex = text.lastIndexOf(";", cursorPos) == -1 ? 0 : text.lastIndexOf(";", cursorPos);
+        int nextSemicolonIndex = text.indexOf(";", cursorPos) == -1 ? text.length() : text.indexOf(";", cursorPos);
+        String currentLine = text.substring(lastSemicolonIndex, nextSemicolonIndex);
+        String[] currentLineWords = currentLine.split(" ");
 
-        IDEVar[] vars = Arrays.stream(classes).flatMap(ideClass -> ideClass.getVariables().stream()).toArray(IDEVar[]::new);
-        IDEMethod[] methods = Arrays.stream(classes).flatMap(ideClass -> ideClass.getMethods().stream()).toArray(IDEMethod[]::new);
+        if (Arrays.asList(PRIMARY_MODIFIER_KEYWORDS).contains(currentLineWords[0])) {
+
+        }
+
         for (IDEVar var : vars) {
             String name = var.name;
             if (name.toLowerCase().contains(currentWord.toLowerCase())) {
