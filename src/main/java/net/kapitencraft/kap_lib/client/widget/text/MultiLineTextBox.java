@@ -37,7 +37,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class MultiLineTextBox extends ScrollableWidget {
@@ -605,6 +604,7 @@ public class MultiLineTextBox extends ScrollableWidget {
 
         List<Suggestion> suggestions = new ArrayList<>();
 
+        String[] lines = text.split("\n"); // this is not made for multiple spaces in a row
         int lastSpaceIndex = text.lastIndexOf(" ", cursorPos) == -1 ? 0 : text.lastIndexOf(" ", cursorPos);
         int nextSpaceIndex = text.indexOf(" ", cursorPos) == -1 ? text.length() : text.indexOf(" ", cursorPos);
         String currentWord = text.substring(lastSpaceIndex, nextSpaceIndex);
@@ -613,21 +613,56 @@ public class MultiLineTextBox extends ScrollableWidget {
         String currentLine = text.substring(lastSemicolonIndex, nextSemicolonIndex);
         String[] currentLineWords = currentLine.split(" ");
 
-        if (Arrays.asList(PRIMARY_MODIFIER_KEYWORDS).contains(currentLineWords[0])) {
+        String packageName = null;
+        String[] packagePath = null;
 
+        for (String line : lines) {
+            // check if the line contains the word "package" and that there is no other word before it
+            if (line.contains("package") || line.substring(0, line.indexOf("package")).trim().isEmpty()) {
+                packageName = line.substring(line.indexOf("package") + 7);
+                break;
+            }
+        }
+
+        if (packageName == null) {
+            // set it to some default or send it to the warning system idk
+        } else {
+            packagePath = packageName.split("\\.");
+        }
+
+        List<Suggestion> expectedSuggestions = new ArrayList<>();
+
+        if (Arrays.asList(PRIMARY_MODIFIER_KEYWORDS).contains(currentLineWords[0])) {
+            if (Arrays.asList(SECONDARY_MODIFIER_KEYWORDS).contains(currentLineWords[1])) { //
+                for (String sug : SECONDARY_MODIFIER_KEYWORDS) {
+                    expectedSuggestions.add(new Suggestion(0, sug, null, null, "primitive", null));
+                }
+            } else if (cursorPos > text.lastIndexOf(currentWord, cursorPos)) { // cursor is behind the primary keyword
+                for (String sug : SECONDARY_MODIFIER_KEYWORDS) {
+                    expectedSuggestions.add(new Suggestion(0, sug, null, null, "primitive", null));
+                }
+            }
         }
 
         for (IDEVar var : vars) {
-            String name = var.name;
-            if (name.toLowerCase().contains(currentWord.toLowerCase())) {
-                Suggestion sug = new Suggestion(lastSpaceIndex, name, null, var.packageName, var.varType, null);
-                suggestions.add(sug);
-            }
+            String[] varPackagePath = var.packageName.split("\\.");
+            if (Arrays.mismatch(packagePath, varPackagePath) == -1) {
+                // this should mean that the variable is from the same package;
+            } // additional package matching checks should be here
+            expectedSuggestions.add(new Suggestion(0, var.name, null, var.packageName, var.varType.name, null));
         }
         for (IDEMethod method : methods) {
-            String name = method.name;
-            if (name.toLowerCase().contains(currentWord.toLowerCase())) {
-                Suggestion sug = new Suggestion(lastSpaceIndex, name, null, method.packageName, method.returnType.name, null);
+            String[] methodPackagePath = method.packageName.split("\\.");
+            if (Arrays.mismatch(packagePath, methodPackagePath) == -1) {
+                // add similar code to the variables one here
+            }
+            expectedSuggestions.add(new Suggestion(0, method.name + "()", null, method.packageName, method.returnType.name, null));
+        }
+
+        for (Suggestion sug : expectedSuggestions) {
+            String suggestionString = sug.suggestionString;
+            if (suggestionString.toLowerCase().contains(currentWord.toLowerCase())) { // check if suggestion should be shown based on the current characters
+                suggestions.add(sug);
             }
         }
 

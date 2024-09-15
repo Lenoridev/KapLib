@@ -7,11 +7,11 @@ import net.minecraft.network.chat.Component;
 import java.util.function.Consumer;
 
 public class Suggestion {
-    private final int insertIndex;
-    private final String suggestionString;
-    private String packageName;
-    private String varType;
-    private String extraInformation;
+    public final int insertIndex;
+    public final String suggestionString;
+    public String packageName;
+    public String varType;
+    public String extraInformation;
     private final Component renderSuggestion;
 
     public Suggestion(int insertIndex, String suggestionString) {
