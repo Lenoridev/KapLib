@@ -593,18 +593,19 @@ public class MultiLineTextBox extends ScrollableWidget {
         this.applySuggestions();
     }
 
-    public Suggestion[] getSuggestions(String text, int cursorPos, IDEClass[] classes) {
+    public Suggestion[] getSuggestions(String text, int cursorPos, IDEClass[] classes, IDECompilerStates[] compilerStates) {
         final IDEVar[] vars = Arrays.stream(classes).flatMap(ideClass -> ideClass.getVariables().stream()).toArray(IDEVar[]::new);
         final IDEMethod[] methods = Arrays.stream(classes).flatMap(ideClass -> ideClass.getMethods().stream()).toArray(IDEMethod[]::new);
 
         final String[] PRIMARY_MODIFIER_KEYWORDS = {"public", "private"};
         final String[] SECONDARY_MODIFIER_KEYWORDS = {"static", "final", "transient"};
-        final String[] PRIMITIVE_DATA_TYPE_KEYWORDS = {"void", "int", "boolean", "float", "char", "short", "byte", "double"};
+        final String[] TERTIARY_MODIFIER_KEYWORDS = {"transient"};
+        final String[] PRIMITIVE_DATA_TYPE_KEYWORDS = {"void", "int", "boolean", "float", "char", "short", "byte", "double", "long"};
         final String[] CUSTOM_DATA_TYPE_KEYWORDS = Arrays.stream(vars).map(IDEObject::getName).toArray(String[]::new);
 
         List<Suggestion> suggestions = new ArrayList<>();
 
-        String[] lines = text.split("\n"); // this is not made for multiple spaces in a row
+        String[] lines = text.split("\n", Integer.MAX_VALUE); // this is not made for multiple spaces in a row
         int lastSpaceIndex = text.lastIndexOf(" ", cursorPos) == -1 ? 0 : text.lastIndexOf(" ", cursorPos);
         int nextSpaceIndex = text.indexOf(" ", cursorPos) == -1 ? text.length() : text.indexOf(" ", cursorPos);
         String currentWord = text.substring(lastSpaceIndex, nextSpaceIndex);
@@ -616,47 +617,92 @@ public class MultiLineTextBox extends ScrollableWidget {
         String packageName = null;
         String[] packagePath = null;
 
-        for (String line : lines) {
-            // check if the line contains the word "package" and that there is no other word before it
-            if (line.contains("package") || line.substring(0, line.indexOf("package")).trim().isEmpty()) {
-                packageName = line.substring(line.indexOf("package") + 7);
-                break;
-            }
-        }
-
-        if (packageName == null) {
-            // set it to some default or send it to the warning system idk
-        } else {
-            packagePath = packageName.split("\\.");
-        }
+//        for (String line : lines) {
+//            // check if the line contains the word "package" and that there is no other word before it
+//            if (line.contains("package") || line.substring(0, line.indexOf("package")).trim().isEmpty()) {
+//                packageName = line.substring(line.indexOf("package") + 7);
+//                break;
+//            }
+//        }
+//
+//        if (packageName == null) {
+//            // set it to some default or send it to the warning system idk
+//        } else {
+//            packagePath = packageName.split("\\.");
+//        }
 
         List<Suggestion> expectedSuggestions = new ArrayList<>();
 
-        if (Arrays.asList(PRIMARY_MODIFIER_KEYWORDS).contains(currentLineWords[0])) {
-            if (Arrays.asList(SECONDARY_MODIFIER_KEYWORDS).contains(currentLineWords[1])) { //
-                for (String sug : SECONDARY_MODIFIER_KEYWORDS) {
-                    expectedSuggestions.add(new Suggestion(0, sug, null, null, "primitive", null));
-                }
-            } else if (cursorPos > text.lastIndexOf(currentWord, cursorPos)) { // cursor is behind the primary keyword
-                for (String sug : SECONDARY_MODIFIER_KEYWORDS) {
-                    expectedSuggestions.add(new Suggestion(0, sug, null, null, "primitive", null));
-                }
+//        if (Arrays.asList(PRIMARY_MODIFIER_KEYWORDS).contains(currentLineWords[0])) {
+//            if (Arrays.asList(SECONDARY_MODIFIER_KEYWORDS).contains(currentLineWords[1])) {
+//                for (String sug : SECONDARY_MODIFIER_KEYWORDS) {
+//                    expectedSuggestions.add(new Suggestion(0, sug, null, null, "primitive", null));
+//                }
+//            } else if (cursorPos > text.lastIndexOf(currentWord, cursorPos)) { // cursor is behind the primary keyword
+//                for (String sug : SECONDARY_MODIFIER_KEYWORDS) {
+//                    expectedSuggestions.add(new Suggestion(0, sug, null, null, "primitive", null));
+//                }
+//            }
+//        }
+
+//        for (IDEVar var : vars) {
+//            String[] varPackagePath = var.packageName.split("\\.");
+//            if (Arrays.mismatch(packagePath, varPackagePath) == -1) {
+//                // this should mean that the variable is from the same package;
+//            } // additional package matching checks should be here
+//            expectedSuggestions.add(new Suggestion(0, var.name, null, var.packageName, var.varType.name, null));
+//        }
+//        for (IDEMethod method : methods) {
+//            String[] methodPackagePath = method.packageName.split("\\.");
+//            if (Arrays.mismatch(packagePath, methodPackagePath) == -1) {
+//                // add similar code to the variables one here
+//            }
+//            expectedSuggestions.add(new Suggestion(0, method.name + "()", null, method.packageName, method.returnType.name, null));
+//        }
+
+        if (Arrays.stream(compilerStates).toList().contains(IDECompilerStates.ExpectingPrimaryModifierKeyword)) {
+            for (String word : PRIMARY_MODIFIER_KEYWORDS) {
+                expectedSuggestions.add(new Suggestion(0, word, null, null, null, null));
             }
         }
 
-        for (IDEVar var : vars) {
-            String[] varPackagePath = var.packageName.split("\\.");
-            if (Arrays.mismatch(packagePath, varPackagePath) == -1) {
-                // this should mean that the variable is from the same package;
-            } // additional package matching checks should be here
-            expectedSuggestions.add(new Suggestion(0, var.name, null, var.packageName, var.varType.name, null));
-        }
-        for (IDEMethod method : methods) {
-            String[] methodPackagePath = method.packageName.split("\\.");
-            if (Arrays.mismatch(packagePath, methodPackagePath) == -1) {
-                // add similar code to the variables one here
+        if (Arrays.stream(compilerStates).toList().contains(IDECompilerStates.ExpectingSecondaryModifierKeyword)) {
+            for (String word : SECONDARY_MODIFIER_KEYWORDS) {
+                expectedSuggestions.add(new Suggestion(0, word, null, null, null, null));
             }
-            expectedSuggestions.add(new Suggestion(0, method.name + "()", null, method.packageName, method.returnType.name, null));
+        }
+
+        if (Arrays.stream(compilerStates).toList().contains(IDECompilerStates.ExpectingTertiaryModifierKeyword)) {
+            for (String word : TERTIARY_MODIFIER_KEYWORDS) {
+                expectedSuggestions.add(new Suggestion(0, word, null, null, null, null));
+            }
+        }
+
+        if (Arrays.stream(compilerStates).toList().contains(IDECompilerStates.ExpectingVar)) {
+            for (IDEVar var : vars) {
+                //TODO: add logic to prevent suggestions for inaccessible variables
+                expectedSuggestions.add(new Suggestion(0, var.name, null, var.packageName, var.varType.name, null));
+            }
+        }
+
+        if (Arrays.stream(compilerStates).toList().contains(IDECompilerStates.ExpectingClass)) {
+            for (IDEClass ideClass : classes) {
+                //TODO: add logic to prevent suggestions for inaccessible classes
+                expectedSuggestions.add(new Suggestion(0, ideClass.name, null, ideClass.packageName, null, null));
+            }
+        }
+
+        if (Arrays.stream(compilerStates).toList().contains(IDECompilerStates.ExpectingMethodCall)) {
+            for (IDEMethod ideMethod : methods) {
+                //TODO: add logic to prevent suggestions for inaccessible methods
+                expectedSuggestions.add(new Suggestion(0, ideMethod.name, null, ideMethod.packageName, ideMethod.returnType.name, null));
+            }
+        }
+
+        if (Arrays.stream(compilerStates).toList().contains(IDECompilerStates.ExpectingMethodArguments)) {
+            for (IDEMethod ideMethod : methods) {
+
+            }
         }
 
         for (Suggestion sug : expectedSuggestions) {
@@ -665,7 +711,7 @@ public class MultiLineTextBox extends ScrollableWidget {
                 suggestions.add(sug);
             }
         }
-
+        
         return suggestions.toArray(Suggestion[]::new);
     }
 

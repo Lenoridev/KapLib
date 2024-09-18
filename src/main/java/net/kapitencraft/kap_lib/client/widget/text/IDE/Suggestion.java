@@ -14,6 +14,8 @@ public class Suggestion {
     public String extraInformation;
     private final Component renderSuggestion;
 
+    // TODO: add more constructors
+
     public Suggestion(int insertIndex, String suggestionString) {
         this(insertIndex, suggestionString, Component.literal(
                 suggestionString.substring(0, insertIndex)).withStyle(ChatFormatting.BLUE)
