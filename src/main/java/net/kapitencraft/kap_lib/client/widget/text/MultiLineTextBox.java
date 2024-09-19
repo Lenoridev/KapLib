@@ -28,6 +28,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import net.kapitencraft.kap_lib.util.Vec2i;
 import org.lwjgl.glfw.GLFW;
@@ -613,6 +614,8 @@ public class MultiLineTextBox extends ScrollableWidget {
         int nextSemicolonIndex = text.indexOf(";", cursorPos) == -1 ? text.length() : text.indexOf(";", cursorPos);
         String currentLine = text.substring(lastSemicolonIndex, nextSemicolonIndex);
         String[] currentLineWords = currentLine.split(" ");
+        int lastBracketIndex = text.lastIndexOf("(", cursorPos) == -1 ? 0 : text.lastIndexOf("(", cursorPos);
+        int numCommasAfterBracket = StringUtils.countMatches(text.substring(lastBracketIndex, cursorPos), ",");
 
         String packageName = null;
         String[] packagePath = null;
@@ -701,7 +704,9 @@ public class MultiLineTextBox extends ScrollableWidget {
 
         if (Arrays.stream(compilerStates).toList().contains(IDECompilerStates.ExpectingMethodArguments)) {
             for (IDEMethod ideMethod : methods) {
-
+                Map<String, IDEClass> parameters = ideMethod.parameters;
+                IDEClass expectedClass = parameters.values().stream().toList().get(numCommasAfterBracket);
+                expectedSuggestions.add(new Suggestion(0, expectedClass.name , null, expectedClass.packageName, null ,null);
             }
         }
 
